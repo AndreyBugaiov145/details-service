@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Users;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::prefix('login')->group(function (){
+    Route::get('/', function () {
+        return view('auth.sign-in');
+    });
+    Route::post('/', [Users::class, 'login'])->name('login');
+});
+
+Route::get('admin', function () {
+    return view('welcome');
+})->middleware('auth');

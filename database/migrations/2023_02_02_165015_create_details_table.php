@@ -27,6 +27,7 @@ class CreateDetailsTable extends Migration
             $table->integer('coefficient')->nullable();
             $table->integer('stock')->default(0);
             $table->unsignedBigInteger('category_id')->unsigned();
+            $table->unsignedBigInteger('currency_id')->unsigned();
             $table->timestamps();
         });
     }

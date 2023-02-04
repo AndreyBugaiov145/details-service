@@ -21,8 +21,11 @@ class CreateDetailsTable extends Migration
             $table->string('short_description');
             $table->text('interchange_numbers');
             $table->integer('price');
-            $table->integer('coefficient');
-            $table->integer('new_price');
+            $table->integer('new_price')->nullable();
+            $table->integer('shipping_price')->nullable();
+            $table->integer('total_price')->nullable();
+            $table->integer('coefficient')->nullable();
+            $table->integer('stock')->default(0);
             $table->unsignedBigInteger('category_id')->unsigned();
             $table->timestamps();
         });

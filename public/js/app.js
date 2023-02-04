@@ -20,9 +20,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  mounted: function mounted() {
-    alert('sadas213');
-  }
+  mounted: function mounted() {}
 });
 
 /***/ }),
@@ -47843,7 +47841,7 @@ var staticRenderFns = [
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "container" }, [
-      _c("h1", [_vm._v("asdasda")]),
+      _c("h1", [_vm._v("example")]),
     ])
   },
 ]

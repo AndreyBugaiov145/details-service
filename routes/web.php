@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ParsingSettingController;
 use App\Http\Controllers\Users;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/', function () {
+    return view('home');
+});
+
 Route::prefix('login')->group(function (){
     Route::get('/', function () {
         return view('auth.sign-in');
@@ -21,6 +26,14 @@ Route::prefix('login')->group(function (){
     Route::post('/', [Users::class, 'login'])->name('login');
 });
 
-Route::get('admin', function () {
-    return view('welcome');
-})->middleware('auth');
+Route::prefix('admin')->group(function (){
+    Route::get('/', function () {
+        return view('auth.sign-in');
+    })/*->middleware('auth')*/;
+
+    Route::get('/parser-setting',  function () {
+        return view('admin.parser-setting');
+    })/*->middleware('auth')*/;
+    Route::resource('/settings', ParsingSettingController::class)->except(['show','edit','create'])/*->middleware('auth')*/;
+});
+

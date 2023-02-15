@@ -39,13 +39,12 @@ class AddUser extends Command
     public function handle()
     {
         $user = User::create([
-            'name'=>$this->argument('email'),
-            'email'=>$this->argument('email'),
-            'password'=>bcrypt($this->argument('password')),
+            'name' => $this->argument('email'),
+            'email' => $this->argument('email'),
+            'password' => bcrypt($this->argument('password')),
         ]);
 
-        var_dump($user->toArray());
-
-        return 'success';
+        echo 'success';
+        return;
     }
 }

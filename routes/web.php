@@ -48,12 +48,18 @@ Route::prefix('login')->group(function (){
 
 Route::prefix('admin')->group(function (){
     Route::get('/', function () {
-        return view('auth.sign-in');
-    })/*->middleware('auth')*/;
+        return view('admin.home');
+    })->middleware('auth')->name('admin');
+
+    Route::get('/reset-password', function () {
+        return view('admin.reset-password');
+    })->middleware('auth')->name('reset-password-page');
+
+    Route::post('/reset-password', [Users::class, 'changePassword'])->middleware('auth')->name('reset-password');
 
     Route::get('/parser-setting',  function () {
         return view('admin.parser-setting');
-    })/*->middleware('auth')*/;
-    Route::resource('/settings', ParsingSettingController::class)->except(['show','edit','create'])/*->middleware('auth')*/;
+    })->middleware('auth')->name('parser-setting');
+    Route::resource('/settings', ParsingSettingController::class)->except(['show','edit','create'])->middleware('auth');
 });
 

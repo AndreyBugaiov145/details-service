@@ -14,6 +14,7 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body>
+    @yield('navbar')
 <div>
     @yield('content')
 </div>

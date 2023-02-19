@@ -18,9 +18,9 @@ class CreateDetailsTable extends Migration
             $table->string('title');
             $table->string('slug')->unique();
             $table->string('s_number');
-            $table->string('short_description');
-            $table->text('interchange_numbers');
-            $table->integer('price');
+            $table->string('short_description')->nullable();
+            $table->text('interchange_numbers')->nullable();
+            $table->float('price');
             $table->integer('new_price')->nullable();
             $table->integer('shipping_price')->nullable();
             $table->integer('total_price')->nullable();

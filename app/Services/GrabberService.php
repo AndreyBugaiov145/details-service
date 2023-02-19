@@ -2,24 +2,25 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Promise;
 
 class GrabberService
 {
     public $httpClient;
     protected $fetchUrl = 'https://www.rockauto.com/catalog/catalogapi.php';
     protected $mainPageUrl = 'https://www.rockauto.com/';
+    protected $timeOut = 15;
 
     public function __construct()
     {
         $this->httpClient = new \GuzzleHttp\Client();
     }
 
-    protected function getNavNodeFetchFormData($jns)
+    protected function getNavNodeFetchFormData($jsn)
     {
         return [
             'payload' => json_encode([
-                'jsn' => $jns
+                'jsn' => $jsn
             ]),
             'func' => 'navnode_fetch',
             'api_json_request' => 1,
@@ -43,15 +44,20 @@ class GrabberService
 
     public function getMainPage(): string
     {
-        $response = $this->httpClient->get($this->mainPageUrl);
+        $response = $this->httpClient->get($this->mainPageUrl,[
+            'timeout' => $this->timeOut,
+//            'proxy' => '68.183.103.250:3128'
+        ]);
 
         return (string)$response->getBody();
     }
 
-    public function getChildCategories(array $jns): string
+    public function getChildCategories(array $jsn): string
     {
         $response = $this->httpClient->post($this->mainPageUrl, [
-            'form_params' => $this->getNavNodeFetchFormData($jns)
+            'form_params' => $this->getNavNodeFetchFormData($jsn),
+            'timeout' => $this->timeOut,
+//            'proxy' => '68.183.103.250:3128'
         ]);
 
 
@@ -63,10 +69,31 @@ class GrabberService
         return '';
     }
 
+    public function getAsyncChildCategory(array $jsn)
+    {
+        return $this->httpClient->postAsync($this->mainPageUrl, [
+            'form_params' => $this->getNavNodeFetchFormData($jsn),
+            'timeout' => $this->timeOut,
+//            'proxy' => '68.183.103.250:3128'
+        ]);
+    }
+
+    public function getAsyncChildCategories(array $data)
+    {
+        $promises = [];
+        foreach ($data as $item){
+            $promises[$item['title']] = $this->getAsyncChildCategory($item['jsn']);
+        }
+
+        return Promise\settle($promises)->wait();
+    }
+
     public function getDetailBuyersGuide($href): string
     {
         $response = $this->httpClient->post($this->mainPageUrl, [
-            'form_params' => $this->getBuyersGuideFetchFormData($href)
+            'form_params' => $this->getBuyersGuideFetchFormData($href),
+            'timeout' => $this->timeOut,
+//            'proxy' => '68.183.103.250:3128'
         ]);
 
         $data = json_decode((string)$response->getBody(), true);

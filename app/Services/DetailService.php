@@ -34,13 +34,14 @@ class DetailService
 
         $mainCategoriesData = $this->fetchMainCategories();
         $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
+
         foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {
             $this->fetchChildCategories($mainYearsCategoryData);
         }
 
 
         Log::info('fetching finish');
-        dd(convert(memory_get_usage(true)));
+        dump(convert(memory_get_usage(true)));
     }
 
     public function fetchMainCategories()
@@ -49,7 +50,6 @@ class DetailService
         Log::info('start fetching main categories');
 
         $html = $this->grabber->getMainPage();
-
         $parser = new ParserService($html);
         $categoriesData = $parser->getAllChildCategoriesWithJns();
         unset($parser);
@@ -70,7 +70,44 @@ class DetailService
         Log::info('start fetching years by main categories');
         $searchedBrands = $this->getSearchedBrands();
 
+
+        /////////////////////
         $categoriesData = [];
+
+        $rejectedCategoryRequest = [];
+        $result = $this->grabber->getAsyncChildCategories($data);
+        foreach ($result as $key => $responseArr) {
+            if ($responseArr['state'] === 'rejected') {
+                $categoriesData[] = current(Arr::where($data, function ($item) use ($key) {
+                    return $item['title'] == $key;
+                }));
+            } else {
+                $html = $this->getCategoryHtmlFromStream($responseArr['value']);
+                $item = current(Arr::where($data, function ($item) use ($key) {
+                    return $item['title'] == $key;
+                }));
+                $parser = new ParserService($html);
+                $categories = $parser->getAllChildCategoriesWithJns();
+                unset($parser);
+                $sliceCategoriesData = array_filter($categories, function ($category) use ($item, $searchedBrands) {
+                    $brand = $searchedBrands->where('brand', $item['title'])->first();
+                    return intval($category['title']) >= intval($brand->year_from) && intval($category['title']) <= intval($brand->year_to);
+                });
+
+                $sliceCategoriesData = array_map(function ($category) use ($item) {
+                    $category['parent_id'] = $item['id'];
+                    return $category;
+                }, $sliceCategoriesData);
+
+
+                $this->saveCategory($sliceCategoriesData);
+
+                $categoriesData[] = $sliceCategoriesData;
+            }
+        }
+
+        return $categoriesData;
+        ///////////////////////////
         foreach ($data as $item) {
             $html = $this->grabber->getChildCategories($item['jsn']);
             $parser = new ParserService($html);
@@ -94,6 +131,16 @@ class DetailService
         Log::info('finish fetching years by main categories', $categoriesData);
 
         return $categoriesData;
+    }
+
+    public function getCategoryHtmlFromStream($stream)
+    {
+        $data = json_decode((string)$stream->getBody(), true);
+        if (isset($data['html_fill_sections']) && is_array($data['html_fill_sections'])) {
+            return reset($data['html_fill_sections']);
+        }
+
+        return '';
     }
 
     public function fetchChildCategories(array $data)

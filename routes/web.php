@@ -7,10 +7,14 @@ use App\Models\ParsingSetting;
 use App\Services\GrabberService;
 use App\Services\ParserService;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use PHPHtmlParser\Dom;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Promise;
+use Psr\Http\Message\ResponseInterface;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +29,65 @@ use PHPHtmlParser\Dom;
 
 
 Route::get('/test', function () {
+    $start = microtime(true);
+    $detailService = new \App\Services\DetailService();
+    $detailService->fetchDetailsInfo();
+    echo 'Время выполнения скрипта: '.round(microtime(true) - $start, 4).' сек.';
+    dd(1);
+
+//    $httpClient = new \GuzzleHttp\Client();
+//    $response = $httpClient->get('https://rud.ua/ru/consumer/recipe/',['timeout' => 15,'proxy' => '68.183.103.250:3128']
+//    );
+////    $html= (string)$response->getBody();
+//    dd($response);
+//    $request = new Request('GET', 'https://www.russianfood.com/');
+
+    $client = new \GuzzleHttp\Client();
+    $promises = [];
+    for ($i = 1; $i <= 3; $i++) {
+//        $httpClient = new \GuzzleHttp\Client();
+//    $response = $httpClient->get('https://www.russianfood.com/');
+        $url = 'https://povar.ru/';
+        if ($i  == 2) {
+            $url = 'https://www.rockauto.com/';
+        }
+        $name = 'test'. $i;
+        $promises[$name] = $client->getAsync($url,['timeout' => 20,'proxy' => '135.125.113.41:3128']);
+    }
+//    echo 'Время выполнения скрипта: '.round(microtime(true) - $start, 4).' сек.';
+//    dd(1);
+
+//    $promises = [
+//        'test' => $client->getAsync('https://www.russianfood.com/'),
+//        'test2'   => $client->getAsync('https://www.russianfood.com/'),
+//    ];
+//    $request = $client->getAsync('https://habr.com');
+//    $request = $client->getAsync('https://habr.com');
+    try {
+//        $response = $client->send($request, ['timeout' => 0.5]);
+//        $results = Promise\unwrap($promises);
+
+// когда все запросы завершатся , даже если были ошибки
+        $promise =  Promise\settle($promises);
+        $results = $promise->wait();
+//        $results = $promise->then(function (ResponseInterface $res) {
+//            dd(1);
+//            dump($res) ;
+//        },
+//            function (RequestException $e) {
+//                dd(2);
+//                dump( $e->getMessage()) ;
+//                dump( $e->getRequest()->getMethod());
+//            });
+        echo 'Время выполнения скрипта: '.round(microtime(true) - $start, 4).' сек.';
+        dd($results);
+    }catch (\GuzzleHttp\Exception\ConnectException $e){
+dd(1);
+    }
+
+
+
+    dd((string)$response->getBody());
     /*
       $html = file_get_contents('https://www.rockauto.com');
       echo $html;

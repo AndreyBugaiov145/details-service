@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\ParsingSettingController;
 use App\Http\Controllers\Users;
+use App\Models\Detail;
+use App\Models\ParsingSetting;
 use App\Services\GrabberService;
+use App\Services\ParserService;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Facades\Http;
@@ -22,62 +25,51 @@ use PHPHtmlParser\Dom;
 
 
 Route::get('/test', function () {
-    $grabber = new GrabberService();
-    $href = 'https://www.rockauto.com/en/catalog/dodge,2022';
-    $rez = $grabber->getChildCategories($href);
-    echo $rez;
-    dd(1);
+    /*
+      $html = file_get_contents('https://www.rockauto.com');
+      echo $html;
 
-    $client = new Client();
+       $dom = new Dom;
+       $dom->loadStr($html);
 
-    $formData = [
-        'payload' => json_encode([
-            'partData' => [
-                'listing_data_essential' => [
-                    'partkey' => '11910309'
-                ]
-            ]
-        ]),
-        'func' => 'getbuyersguide',
-        'api_json_request' => 1,
-    ];
+       $a = $dom->find('div.ranavnode');
 
-    $formData2 = [
-        'payload' => json_encode([
-            'jsn' => [
-                'href' => 'https://www.rockauto.com/en/catalog/american+motors,1987,eagle,4.2l+258cid+l6,1003576,body+&+lamp+assembly'
-            ]
-        ]),
-        'func' => 'navnode_fetch',
-        'api_json_request' => 1,
-    ];
-    $url = 'https://www.rockauto.com/catalog/catalogapi.php';
-    $url1 = 'https://www.rockauto.com/en/catalog/chevrolet,2022,aveo,1.5l+l4,3450509,engine,oil+filter,5340';
-// RequestOptions::class;
-    $response = $client->post( $url, [
-        'form_params' => $formData2]);
 
-    $htmlString = (string)$response->getBody();
-    $obj = json_decode($htmlString, true);
-    dd($obj);
-    dd(1);
+       $jsn = (array)json_decode(html_entity_decode($a[0]->firstChild()->getAttribute('value')));
 
-    if ($body['success'] === true && $body['data'] !== false) {
-        dd($body['data']);
-    }
-    return 1;
-    $html = file_get_contents('https://habr.com/ru/company/vk/blog/565028/');
-    $dom = new Dom;
-    $dom->loadStr($html);
+       $jsn['href'] ='https://www.rockauto.com'.$a[0]->find('a.navlabellink')[0]->getAttribute('href');
+   //    $jsn = (array)json_decode($jsn);
+   //    $jsn = ".$a[0]->firstChild()->getAttribute('value').";
+   //
+   //    dd(html_entity_decode($jsn));
+   //    dd( $jsn);
+   //dd();
+       dump($jsn);*/
 
-    $a = $dom->find('.tm-article-snippet__title.tm-article-snippet__title_h1');
-    dd($a->firstChild()->text);
+
+//    $grabber = new GrabberService();
+//    $httpClient = new \GuzzleHttp\Client();
+//    $response = $httpClient->get('https://www.rockauto.com/en/catalog/audi,2020,a4+allroad,2.0l+l4+turbocharged,3445815,belt+drive,belt,8900');
+//    $html= (string)$response->getBody();
+//   $parserService = new ParserService($html);
+//   dd($parserService->getDetails());
+//   $rez  = $parserService->getAllChildCategoriesWithJns();
+//   $Detail =  new \App\Models\Category(['title'=>'adsada']);
+//    $Detail->save();
+
+//   $rez =  \App\Models\Category::upsert(['title'=>'adsada','parent_id'=>1], ['title']);
+//    dd($rez);
+
+   $detailService = new \App\Services\DetailService();
+    $detailService->fetchDetailsInfo();
+    dd( 1);
+
 //    $rez = pq($doc,'title');
 
 //    dd($rez);
 //    phpQuery::unloadDocuments($doc);
 
-    echo $html;
+//    echo $html;
 
     return 1;
 });

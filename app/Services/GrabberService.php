@@ -8,7 +8,7 @@ class GrabberService
 {
     public $httpClient;
     protected $fetchUrl = 'https://www.rockauto.com/catalog/catalogapi.php';
-    protected $mainPageUrl = 'https://www.rockauto.com';
+    protected $mainPageUrl = 'https://www.rockauto.com/';
 
     public function __construct()
     {
@@ -48,7 +48,7 @@ class GrabberService
         return (string)$response->getBody();
     }
 
-    public function getChildCategories($jns): string
+    public function getChildCategories(array $jns): string
     {
         $response = $this->httpClient->post($this->mainPageUrl, [
             'form_params' => $this->getNavNodeFetchFormData($jns)
@@ -56,8 +56,8 @@ class GrabberService
 
 
         $data = json_decode((string)$response->getBody(), true);
-        if (isset($data['html_fill_sections']) && isset($data['html_fill_sections']['navchildren[]'])) {
-            return $data['html_fill_sections']['navchildren[]'];
+        if (isset($data['html_fill_sections']) && is_array($data['html_fill_sections'])) {
+            return reset($data['html_fill_sections']);
         }
 
         return '';

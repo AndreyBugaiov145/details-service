@@ -6,6 +6,7 @@ use App\Models\Detail;
 use App\Models\ParsingSetting;
 use App\Services\GrabberService;
 use App\Services\ParserService;
+use App\Services\ProxyScrape;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
@@ -27,7 +28,19 @@ use Psr\Http\Message\ResponseInterface;
 |
 */
 
+Route::get('/test2', function () {
+    $options = [
+        "timeout" => 1000,
+        "protocol" => "http",
+        "country" => "all",
+        "ssl" => "all",
+        "anonymity" => "all"
+    ];
 
+    $endpoint = new ProxyScrape($options);
+    $list = $endpoint->get();
+    dd($list);
+});
 Route::get('/test', function () {
     $start = microtime(true);
     $detailService = new \App\Services\DetailService();

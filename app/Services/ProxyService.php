@@ -83,7 +83,6 @@ class ProxyService
         $success = [];
         $chunks = array_chunk($requests, 100, true);
         foreach ($chunks as $chunk) {
-            dump($chunk);
             for ($i = 0; $i < 5; $i++) {
                 try {
                     $promise = Promise\settle($chunk);
@@ -91,6 +90,7 @@ class ProxyService
 
                     foreach ($results as $key => $r) {
                         if ($r['state'] != 'rejected') {
+                            unset($chunk[$key]);
                             $success[] = $key;
                         }
                     }

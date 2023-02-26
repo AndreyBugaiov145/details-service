@@ -67,6 +67,7 @@ class Detail extends Model
         'coefficient',
         'category_id',
         'currency_id',
+        'partkey',
     ];
 
     /**

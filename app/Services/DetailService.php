@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\GrabberException;
 use App\Models\Category;
 use App\Models\Currency;
 use App\Models\Detail;
@@ -14,6 +15,9 @@ class DetailService
 
     public $grabber;
     protected $currency_id;
+    protected $attempts = 0;
+    protected $max_attempts = 25;
+    protected $i = 0;
 
     public function __construct()
     {
@@ -23,33 +27,70 @@ class DetailService
 
     public function fetchDetailsInfo()
     {
-        function convert($size)
-        {
-            $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
-            return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
+        Log::info('Start fetching');
+        try {
+            $this->attempts = 0;
+            $mainCategoriesData = $this->fetchMainCategories();
+            dump($mainCategoriesData);
+            $this->attempts = 0;
+            $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
+
+//            $mainYearsCategoriesData = $this->array2Dto1DAndAddUid($mainYearsCategoriesData);
+            dump($mainYearsCategoriesData);
+            $this->attempts = 0;
+            $rez = $this->fetchChildCategories($mainYearsCategoriesData);
+            dump($rez);
+//            foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {
+//                $this->attempts = 0;
+//                $this->fetchChildCategories($mainYearsCategoryData);
+//            }
+
+        } catch (GrabberException $e) {
+            Log::warning($e->getMessage(), $e->getTrace());
+            dump('GrabberException');
+            dd($e->getMessage());
+        } catch (\Exception $e) {
+
+            Log::critical($e->getMessage(), $e->getTrace());
+            dump('Exception');
+            dd($e->getMessage());
         }
-
-        Log::info('start fetching');
-        dump(convert(memory_get_usage(true)));
-
-        $mainCategoriesData = $this->fetchMainCategories();
-        $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
-
-        foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {
-            $this->fetchChildCategories($mainYearsCategoryData);
-        }
-
 
         Log::info('fetching finish');
-        dump(convert(memory_get_usage(true)));
+    }
+
+    public function array2Dto1DAndAddUid(array $data): array
+    {
+        $uidArr = [];
+        $result = [];
+
+        foreach ($data as $category) {
+            if (is_array($category)) {
+                foreach ($category as $item) {
+                    do {
+                        $uid = \Str::random(25);
+                    } while (in_array($uid, $uidArr));
+                    $uidArr[] = $uid;
+                    $newItem = $item;
+                    $newItem['uid'] = $uid;
+                    $result[] = $newItem;
+                }
+            }
+        }
+
+        return $result;
     }
 
     public function fetchMainCategories()
     {
-
         Log::info('start fetching main categories');
-
-        $html = $this->grabber->getMainPage();
+        do {
+            if ($this->attempts > $this->max_attempts) {
+                throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
+            }
+            $html = $this->grabber->getMainPage();
+            $this->attempts++;
+        } while (!$html);
         $parser = new ParserService($html);
         $categoriesData = $parser->getAllChildCategoriesWithJns();
         unset($parser);
@@ -69,68 +110,68 @@ class DetailService
     {
         Log::info('start fetching years by main categories');
         $searchedBrands = $this->getSearchedBrands();
-
-
-        /////////////////////
         $categoriesData = [];
-
-        $rejectedCategoryRequest = [];
+        $rejectedCategoryData = [];
         $result = $this->grabber->getAsyncChildCategories($data);
+
         foreach ($result as $key => $responseArr) {
             if ($responseArr['state'] === 'rejected') {
-                $categoriesData[] = current(Arr::where($data, function ($item) use ($key) {
+                $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {
                     return $item['title'] == $key;
-                }));
-            } else {
-                $html = $this->getCategoryHtmlFromStream($responseArr['value']);
-                $item = current(Arr::where($data, function ($item) use ($key) {
-                    return $item['title'] == $key;
-                }));
-                $parser = new ParserService($html);
-                $categories = $parser->getAllChildCategoriesWithJns();
-                unset($parser);
-                $sliceCategoriesData = array_filter($categories, function ($category) use ($item, $searchedBrands) {
-                    $brand = $searchedBrands->where('brand', $item['title'])->first();
-                    return intval($category['title']) >= intval($brand->year_from) && intval($category['title']) <= intval($brand->year_to);
                 });
-
-                $sliceCategoriesData = array_map(function ($category) use ($item) {
-                    $category['parent_id'] = $item['id'];
-                    return $category;
-                }, $sliceCategoriesData);
-
-
-                $this->saveCategory($sliceCategoriesData);
+            } else {
+                $sliceCategoriesData = $this->parseAndSaveYearsCategoryItems([
+                    'data' => $data,
+                    'key' => $key,
+                    'responseArr' => $responseArr,
+                    'searchedBrands' => $searchedBrands,
+                ]);
 
                 $categoriesData[] = $sliceCategoriesData;
             }
         }
-
-        return $categoriesData;
-        ///////////////////////////
-        foreach ($data as $item) {
-            $html = $this->grabber->getChildCategories($item['jsn']);
-            $parser = new ParserService($html);
-            $categories = $parser->getAllChildCategoriesWithJns();
-            unset($parser);
-            $sliceCategoriesData = array_filter($categories, function ($category) use ($item, $searchedBrands) {
-                $brand = $searchedBrands->where('brand', $item['title'])->first();
-                return intval($category['title']) >= intval($brand->year_from) && intval($category['title']) <= intval($brand->year_to);
-            });
-
-            $sliceCategoriesData = array_map(function ($category) use ($item) {
-                $category['parent_id'] = $item['id'];
-                return $category;
-            }, $sliceCategoriesData);
-
-
-            $this->saveCategory($sliceCategoriesData);
-
-            $categoriesData[] = $sliceCategoriesData;
+        if ($this->attempts > $this->max_attempts) {
+            throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
         }
+
+        if (count($rejectedCategoryData)) {
+            $this->attempts++;
+            $categoriesData2 = $this->fetchMainYearsCategories($rejectedCategoryData);
+            $categoriesData = array_merge($categoriesData, $categoriesData2);
+        }
+
         Log::info('finish fetching years by main categories', $categoriesData);
 
         return $categoriesData;
+    }
+
+    public function parseAndSaveYearsCategoryItems(array $info): array
+    {
+        $html = $this->getCategoryHtmlFromStream($info['responseArr']['value']);
+        $item = Arr::first($info['data'], function ($item) use ($info) {
+            return $item['title'] == $info['key'];
+        });
+        $parser = new ParserService($html);
+        $categories = $parser->getAllChildCategoriesWithJns();
+        unset($parser);
+        if (isset($info['searchedBrands'])) {
+            $sliceCategoriesData = array_filter($categories, function ($category) use ($item, $info) {
+                $brand = $info['searchedBrands']->where('brand', $item['title'])->first();
+                return intval($category['title']) >= intval($brand->year_from) && intval($category['title']) <= intval($brand->year_to);
+            });
+        } else {
+            $sliceCategoriesData = $categories;
+        }
+
+        $sliceCategoriesData = array_map(function ($category) use ($item) {
+            $category['parent_id'] = $item['id'];
+            return $category;
+        }, $sliceCategoriesData);
+
+
+        $this->saveCategory($sliceCategoriesData);
+
+        return $sliceCategoriesData;
     }
 
     public function getCategoryHtmlFromStream($stream)
@@ -143,40 +184,98 @@ class DetailService
         return '';
     }
 
+    public function fetchRequestCategories($data)
+    {
+        $rejectedCategoryData = [];
+        $successCategoryData = [];
+        $result = $this->grabber->getAsyncChildCategories($data);
+        foreach ($result as $key => $responseArr) {
+            if ($responseArr['state'] === 'rejected') {
+                $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {
+                    return $item['uid'] == $key;
+                });
+            } else {
+                $successCategoryData[$key] = $responseArr;
+            }
+        }
+
+        return [
+            'success' => $successCategoryData,
+            'rejected' => $rejectedCategoryData,
+        ];
+    }
+
     public function fetchChildCategories(array $data)
     {
-        Log::info('start fetching child categories');
-        foreach ($data as $item) {
-            $html = $this->grabber->getChildCategories($item['jsn']);
+        $this->i++;
+        if ($this->i > 5) {
+            return;
+        }
+
+        Log::info('start fetching child categories', $data);
+        $this->attempts = 0;
+        $newAllCategoriesData = [];
+        $data = $this->array2Dto1DAndAddUid($data);
+        $result = $this->fetchRequestCategories($data);
+
+        if ($this->attempts > $this->max_attempts) {
+            throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
+            Log::critical('Faeil max_attempts', $data);
+        }
+
+        do {
+            $this->attempts++;
+            if ($this->attempts > $this->max_attempts) {
+                throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
+            }
+            $rez = $this->fetchRequestCategories($result['rejected']);
+            $result['rejected'] = $rez['rejected'];
+            $result['success'] = array_replace($result['success'], $rez['success']);
+        } while (count($result['rejected']));
+
+        foreach ($result['success'] as $key => $responseArr) {
+            $html = $this->getCategoryHtmlFromStream($responseArr['value']);
+            $item = Arr::first($data, function ($item) use ($key) {
+                return $item['uid'] == $key;
+            });
             $parser = new ParserService($html);
             if ($parser->isFinalCategory()) {
                 $detailsData = $parser->getDetails();
                 $this->saveDetails($detailsData, $item['id']);
+                unset($parser);
             } else {
-                $categoriesData = $parser->getAllChildCategoriesWithJns();
-                $categoriesData = array_map(function ($category) use ($item) {
+                $categories = $parser->getAllChildCategoriesWithJns();
+                unset($parser);
+
+                $categories = array_map(function ($category) use ($item) {
                     $category['parent_id'] = $item['id'];
-
                     return $category;
-                }, $categoriesData);
-
-                $this->saveCategory($categoriesData);
-                $this->fetchChildCategories($categoriesData);
+                }, $categories);
+                $this->saveCategory($categories);
+                $newAllCategoriesData[] = $categories;
             }
 
-            unset($parser);
         }
-        Log::info('finish fetching child categories', $data);
+
+        dump($newAllCategoriesData);
+        Log::info('finish fetching child categories', $newAllCategoriesData);
+        if (count($newAllCategoriesData) > 0) {
+            $this->fetchChildCategories($newAllCategoriesData);
+        }
+
+        return;
+
     }
 
     public function saveCategory(&$data)
     {
-        $categories = collect();
-
         foreach ($data as $key => $item) {
             $categoryData = ['title' => $item['title']];
             if (isset($item['parent_id'])) {
                 $categoryData['parent_id'] = $item['parent_id'];
+            }
+            if (isset($item['jsn'])) {
+                $categoryData['jsn'] = json_encode($item['jsn']);
             }
             $category = Category::firstOrCreate($categoryData);
             $data[$key]['id'] = $category->id;

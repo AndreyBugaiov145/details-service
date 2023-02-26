@@ -142,16 +142,16 @@ class ProxyService
         return $proxies['success'];
     }
 
-    protected function incrementFailedProxy($proxies)
+    public function incrementFailedProxy(array $proxies)
     {
         \App\Models\Proxy::whereIn('proxy', $proxies)->increment('fail_count');
     }
 
     public function getProxies()
     {
-        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 =  $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
-
+dump('getProxies');
         return array_unique(array_merge($proxiesArr1, $proxiesArr2));
     }
 

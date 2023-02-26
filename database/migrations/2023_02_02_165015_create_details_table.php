@@ -26,6 +26,7 @@ class CreateDetailsTable extends Migration
             $table->integer('total_price')->nullable();
             $table->integer('coefficient')->nullable();
             $table->integer('stock')->default(0);
+            $table->integer('partkey')->nullable();
             $table->unsignedBigInteger('category_id')->unsigned();
             $table->unsignedBigInteger('currency_id')->unsigned();
             $table->timestamps();

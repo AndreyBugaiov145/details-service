@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\GrabberException;
 use App\Http\Controllers\ParsingSettingController;
 use App\Http\Controllers\Users;
 use App\Models\Detail;
@@ -19,6 +20,7 @@ use GuzzleHttp\Promise;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use function App\Services\convert;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,30 +33,50 @@ use Psr\Http\Message\UriInterface;
 |
 */
 
+Route::get('/parse', function () {
+    function convert2($size)
+    {
+        $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
+        return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
+    }
+    dump(convert2(memory_get_usage(true)));
+    $start = microtime(true);
+    $detailService = new \App\Services\DetailService();
+    $detailService->fetchDetailsInfo();
+    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+    dump(convert2(memory_get_usage(true)));
+    dd(1);
+
+
+});
+
 Route::get('/test4', function () {
+$PARSER = new ParserService('<div><input type="hidden" autocomplete="off" name="listing_data_essential[331]" id="listing_data_essential[331]" value="{&quot;groupindex&quot;:&quot;331&quot;,&quot;carcode&quot;:&quot;1436031&quot;,&quot;parttype&quot;:&quot;2136&quot;,&quot;partkey&quot;:&quot;120543&quot;,&quot;opts&quot;:{&quot;0-0-0-1&quot;:{&quot;warehouse&quot;:&quot;92501&quot;,&quot;whpartnum&quot;:&quot;FEL 35063&quot;,&quot;optionlist&quot;:&quot;0&quot;,&quot;paramcode&quot;:&quot;0&quot;,&quot;notekey&quot;:&quot;0&quot;,&quot;multiple&quot;:&quot;1&quot;}}}"></div>>');
+    $input_partKey = $PARSER->dom->find('input[name^=listing_data_essential]')[0];
+    dd(json_decode(html_entity_decode($input_partKey->getAttribute('value')))->partkey);
+   $rez = json_decode($input_partKey->getAttribute('value'))['partkey'];
+   dd( $rez);
+
+    function convert1($size)
+    {
+        $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
+        return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
+    }
+    dump(convert1(memory_get_usage(true)));
     $ProxyService = new ProxyService();
-    $proxies = $ProxyService->fetchAndSaveProxies();
-});
 
-Route::get('/test3', function () {
-    $sh = curl_init('http://www.rockauto.com/');
-    curl_setopt($sh, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($sh, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($sh, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36');
-    curl_setopt($sh, CURLOPT_PROXY_SSL_VERIFYPEER, false);
-    curl_setopt($sh, CURLOPT_PROXY_SSL_VERIFYHOST, false);
-
-    curl_setopt($sh, CURLOPT_TIMEOUT, 20);
-    curl_setopt($sh, CURLOPT_CONNECTTIMEOUT, 10);
-
-    $rez = curl_exec($sh);
-    curl_close($sh);
+//    $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
+////    $proxies =$ProxyService->fetchProxy();
+//    $requests = $ProxyService->createAsyncRequestsArr($proxies);
+//    $result = $ProxyService->checkProxyList($requests);
+$rez = $ProxyService->fetchAndSaveProxies();
     dd($rez);
-
-//    curl_setopt($sh,CURLOPT_PROXY);
-//    curl_setopt($sh,CURLOPT_PROXYTYPE,CURLPROXY_HTTP);
-
+    dump(convert1(memory_get_usage(true)));
+    dd($rez);
+    dd($result);
 });
+
+
 Route::get('/test2', function () {
     $options = [
         "timeout" => 1000,
@@ -153,34 +175,27 @@ Route::get('/test2', function () {
 
 });
 Route::get('/test', function () {
-//    $start = microtime(true);
+    $start = microtime(true);
 //    $detailService = new \App\Services\DetailService();
 //    $detailService->fetchDetailsInfo();
 //    echo 'Время выполнения скрипта: '.round(microtime(true) - $start, 4).' сек.';
 //    dd(1);
 
-//    $httpClient = new \GuzzleHttp\Client();
-//    $response = $httpClient->get('https://rud.ua/ru/consumer/recipe/',['timeout' => 15,'proxy' => '68.183.103.250:3128']
-//    );
-////    $html= (string)$response->getBody();
-//    dd($response);
-//    $request = new Request('GET', 'https://www.russianfood.com/');
+    $httpClient = new \GuzzleHttp\Client();
+    $response = $httpClient->get('https://www.rockauto.com/en/catalog/acura,2020,ilx,2.4l+l4,3445092,accessories,trailer+connector,2628',['timeout' => 15,]
+    );
+    $html= (string)$response->getBody();
+    dd($html);
+    $request = new Request('GET', 'https://www.russianfood.com/');
 
     $client = new \GuzzleHttp\Client();
-    try {
-        $response = $client->get(
-            'https://httpbin.org/anything',
-//            'https://www.rockauto.com/',
-            [
-                'timeout' => 5,
-                'proxy' => '198.57.27.6:8850'
-            ]);
-        dd($response->getOptions());
-    } catch (Exception $e) {
-        dd($e->getRequest()->getOptions());
-    }
-
-    dd((string)$response->getBody());
+//    try {
+//       throw new GrabberException('adas');
+//    } catch (GrabberException $e) {
+//        dd($e->getMessage());
+//    }
+//
+//    dd((string)$response->getBody());
     $promises = [];
     for ($i = 1; $i <= 3; $i++) {
 //        $httpClient = new \GuzzleHttp\Client();
@@ -190,7 +205,7 @@ Route::get('/test', function () {
             $url = 'https://www.rockauto.com/';
         }
         $name = 'test' . $i;
-        $promises[$name] = $client->getAsync($url, ['timeout' => 20, 'proxy' => '135.125.113.41:3128']);
+        $promises[$name] = $client->getAsync($url, ['timeout' => 2, 'proxy' => '135.125.113.41:3128']);
     }
 //    echo 'Время выполнения скрипта: '.round(microtime(true) - $start, 4).' сек.';
 //    dd(1);

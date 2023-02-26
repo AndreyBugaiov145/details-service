@@ -22,11 +22,19 @@ class ProxyService
         "anonymity" => "all"
     ];
 
+    protected $connect_timeout = 40;
+    protected $timeout = 20;
+
     protected $url = 'https://www.rockauto.com/';
 
     public function __construct()
     {
-        $this->httpClient = new \GuzzleHttp\Client();
+        $this->httpClient = new \GuzzleHttp\Client([
+            'headers' => ['Connection' => 'close'],
+            'Connection' => 'close',
+            CURLOPT_FORBID_REUSE => true,
+            CURLOPT_FRESH_CONNECT => true,
+        ]);
     }
 
     public function fetchAndSaveProxies()
@@ -34,7 +42,9 @@ class ProxyService
         $proxies = $this->fetchProxy();
         $requests = $this->createAsyncRequestsArr($proxies);
         $result = $this->checkProxyList($requests);
-        $this->saveProxies($result);
+        $this->saveProxies($result['success']);
+
+        return $result['success'];
     }
 
     protected function fetchProxy()
@@ -58,8 +68,8 @@ class ProxyService
             $promises[$proxy] = $this->httpClient->getAsync(
                 $this->url,
                 [
-                    'timeout' => 40,
-                    'connect_timeout' => 20,
+                    'timeout' => $this->timeout,
+                    'connect_timeout' => $this->connect_timeout,
                     'proxy' => $proxy,
                     'headers' => [
 
@@ -81,6 +91,7 @@ class ProxyService
     protected function checkProxyList(array $requests)
     {
         $success = [];
+        $failed = [];
         $chunks = array_chunk($requests, 100, true);
         foreach ($chunks as $chunk) {
             for ($i = 0; $i < 5; $i++) {
@@ -92,6 +103,8 @@ class ProxyService
                         if ($r['state'] != 'rejected') {
                             unset($chunk[$key]);
                             $success[] = $key;
+                        } else {
+                            $failed[] = $key;
                         }
                     }
                 } catch (\GuzzleHttp\Exception\ConnectException $e) {
@@ -99,7 +112,10 @@ class ProxyService
                 }
             }
         }
-        return array_unique($success);
+        return [
+            'success' => array_unique($success),
+            'failed' => array_unique($failed)
+        ];
     }
 
     protected function saveProxies(array $proxies)
@@ -109,7 +125,35 @@ class ProxyService
             $data[] = ['proxy' => $proxy];
         }
         \App\Models\Proxy::upsert($data, ['proxy'], ['fail_count' => 0]);
-
-        dd($proxies);
     }
+
+    protected function getCheckredProxyFromDB()
+    {
+        $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
+        $requests = $this->createAsyncRequestsArr($proxies);
+        return $this->checkProxyList($requests);
+    }
+
+    public function getWorkingProxyAndUpdateFailedFromDB()
+    {
+        $proxies = $this->getCheckredProxyFromDB();
+        $this->incrementFailedProxy($proxies['failed']);
+
+        return $proxies['success'];
+    }
+
+    protected function incrementFailedProxy($proxies)
+    {
+        \App\Models\Proxy::whereIn('proxy', $proxies)->increment('fail_count');
+    }
+
+    public function getProxies()
+    {
+        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr2 = $this->fetchAndSaveProxies();
+
+        return array_unique(array_merge($proxiesArr1, $proxiesArr2));
+    }
+
+
 }

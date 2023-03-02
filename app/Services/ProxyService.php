@@ -8,15 +8,7 @@ class ProxyService
 {
     protected $opt1 = [
         "timeout" => 3500,
-        "protocol" => "http",
-        "country" => "all",
-        "ssl" => "all",
-        "anonymity" => "all"
-    ];
-
-    protected $opt2 = [
-        "timeout" => 3500,
-        "protocol" => "https",
+        "protocol" => "all",
         "country" => "all",
         "ssl" => "all",
         "anonymity" => "all"
@@ -26,6 +18,8 @@ class ProxyService
     protected $timeout = 20;
 
     protected $url = 'https://www.rockauto.com/';
+
+//    protected $url = 'http://httpbin.org/ip';
 
     public function __construct()
     {
@@ -50,12 +44,8 @@ class ProxyService
     protected function fetchProxy()
     {
         $endpoint = new ProxyScrape($this->opt1);
-        $list1 = $endpoint->get();
 
-        $endpoint = new ProxyScrape($this->opt2);
-        $list2 = $endpoint->get();
-
-        return array_merge($list2, $list1) ?: [];
+        return $endpoint->get() ?: [];
     }
 
     protected function createAsyncRequestsArr($proxies)
@@ -92,26 +82,22 @@ class ProxyService
     {
         $success = [];
         $failed = [];
-        $chunks = array_chunk($requests, 100, true);
-        foreach ($chunks as $chunk) {
-            for ($i = 0; $i < 5; $i++) {
-                try {
-                    $promise = Promise\settle($chunk);
-                    $results = $promise->wait();
 
-                    foreach ($results as $key => $r) {
-                        if ($r['state'] != 'rejected') {
-                            unset($chunk[$key]);
-                            $success[] = $key;
-                        } else {
-                            $failed[] = $key;
-                        }
-                    }
-                } catch (\GuzzleHttp\Exception\ConnectException $e) {
-                    \Log::critical($e->getMessage(), $e->getRequest());
+        try {
+            $promise = Promise\settle($requests);
+            $results = $promise->wait();
+
+            foreach ($results as $key => $r) {
+                if ($r['state'] != 'rejected') {
+                    $success[] = $key;
+                } else {
+                    $failed[] = $key;
                 }
             }
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            \Log::critical($e->getMessage(), $e->getRequest());
         }
+
         return [
             'success' => array_unique($success),
             'failed' => array_unique($failed)
@@ -149,9 +135,10 @@ class ProxyService
 
     public function getProxies()
     {
-        $proxiesArr1 =  $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
-dump('getProxies');
+
+        dump('getProxies');
         return array_unique(array_merge($proxiesArr1, $proxiesArr2));
     }
 

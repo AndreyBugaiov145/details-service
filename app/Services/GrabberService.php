@@ -28,12 +28,15 @@ class GrabberService
         $this->proxies = $this->proxyService->getProxies();
     }
 
-    protected function getProxies()
+    protected function getProxies(int $count = 15)
     {
-        if (count($this->proxies) < 30) {
+        $count = $count / 12 > 20 ? $count / 12 : 20;
+        if (count($this->proxies) < $count) {
+            dump( 'get new proxies');
             $this->proxies = $this->proxyService->getProxies();
         }
 
+        dump( count($this->proxies ));
         return $this->proxies;
     }
 
@@ -125,7 +128,7 @@ class GrabberService
         $promises = [];
         $failedProxy = [];
         foreach ($data as $item) {
-            $proxy = Arr::random($this->getProxies());
+            $proxy = Arr::random($this->getProxies(count($data)));
             $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
             $key = $uid . '|' . $proxy;
             $promises[$key] = $this->getAsyncChildCategory($item['jsn'], $proxy);

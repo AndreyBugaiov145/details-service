@@ -40,10 +40,10 @@ class DetailService
             dump($mainYearsCategoriesData);
             $this->fetchChildCategories($mainYearsCategoriesData);
             $this->attempts = 0;
-            foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {
-                $this->attempts = 0;
-                $this->fetchChildCategories([$mainYearsCategoryData]);
-            }
+//            foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {
+//                $this->attempts = 0;
+//                $this->fetchChildCategories([$mainYearsCategoryData]);
+//            }
 //            $rez = $this->fetchChildCategories($mainYearsCategoriesData);
 //            dump($rez);
 //            foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {

@@ -18,6 +18,7 @@ class DetailService
     protected $attempts = 0;
     protected $max_attempts = 25;
     protected $i = 0;
+    public $request_count = 0;
 
     public function __construct()
     {
@@ -34,12 +35,17 @@ class DetailService
             dump($mainCategoriesData);
             $this->attempts = 0;
             $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
-
+            $this->request_count += count($mainYearsCategoriesData);
 //            $mainYearsCategoriesData = $this->array2Dto1DAndAddUid($mainYearsCategoriesData);
             dump($mainYearsCategoriesData);
+            $this->fetchChildCategories($mainYearsCategoriesData);
             $this->attempts = 0;
-            $rez = $this->fetchChildCategories($mainYearsCategoriesData);
-            dump($rez);
+            foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {
+                $this->attempts = 0;
+                $this->fetchChildCategories([$mainYearsCategoryData]);
+            }
+//            $rez = $this->fetchChildCategories($mainYearsCategoriesData);
+//            dump($rez);
 //            foreach ($mainYearsCategoriesData as $mainYearsCategoryData) {
 //                $this->attempts = 0;
 //                $this->fetchChildCategories($mainYearsCategoryData);
@@ -157,6 +163,7 @@ class DetailService
         if (isset($info['searchedBrands'])) {
             $sliceCategoriesData = array_filter($categories, function ($category) use ($item, $info) {
                 $brand = $info['searchedBrands']->where('brand', $item['title'])->first();
+//                return intval($category['title']) == intval($brand->year_from);
                 return intval($category['title']) >= intval($brand->year_from) && intval($category['title']) <= intval($brand->year_to);
             });
         } else {
@@ -186,6 +193,7 @@ class DetailService
 
     public function fetchRequestCategories($data)
     {
+        $this->request_count += count($data);
         $rejectedCategoryData = [];
         $successCategoryData = [];
         $result = $this->grabber->getAsyncChildCategories($data);
@@ -217,7 +225,6 @@ class DetailService
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
         $result = $this->fetchRequestCategories($data);
-
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
             Log::critical('Faeil max_attempts', $data);

@@ -14,7 +14,7 @@ class GrabberService
     protected $connect_timeout = 10;
     protected $proxies = [];
     protected $proxyService;
-    protected $chunkCount = 100;
+    protected $chunkCount = 400;
 
     public function __construct()
     {
@@ -30,13 +30,13 @@ class GrabberService
 
     protected function getProxies(int $count = 15)
     {
-        $count = $count / 12 > 20 ? $count / 12 : 20;
+        $count = $count / 10 > 20 ? $count / 10 : 20;
         if (count($this->proxies) < $count) {
-            dump( 'get new proxies');
             $this->proxies = $this->proxyService->getProxies();
+            dump( 'need count'.$count);
+            dump( 'get new proxies'.count($this->proxies));
         }
 
-        dump( count($this->proxies ));
         return $this->proxies;
     }
 
@@ -125,18 +125,20 @@ class GrabberService
 
     public function getAsyncChildCategories(array $data)
     {
-        $promises = [];
         $failedProxy = [];
-        foreach ($data as $item) {
-            $proxy = Arr::random($this->getProxies(count($data)));
-            $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
-            $key = $uid . '|' . $proxy;
-            $promises[$key] = $this->getAsyncChildCategory($item['jsn'], $proxy);
-        }
-        $chunks = array_chunk($promises, $this->chunkCount, true);
+
+        $chunks = array_chunk($data, $this->chunkCount);
         $result = [];
+
         foreach ($chunks as $chunk) {
-            $responses = Promise\settle($chunk)->wait();
+            $promises = [];
+            foreach ($chunk as $item) {
+                $proxy = Arr::random($this->getProxies(count($chunk)));
+                $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
+                $key = $uid . '|' . $proxy;
+                $promises[$key] = $this->getAsyncChildCategory($item['jsn'], $proxy);
+            }
+            $responses = Promise\settle($promises)->wait();
 
             foreach ($responses as $key => $responseArr) {
                 try {

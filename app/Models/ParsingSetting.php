@@ -29,5 +29,24 @@ class ParsingSetting extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['brand', 'year_from', 'year_to'];
+    protected $fillable = [
+        'brand',
+        'year_from',
+        'year_to',
+        'category_parsing_at',
+        'car_models',
+        'detail_parsing_at',
+        'category_parsing_status',
+        'detail_parsing_status',
+        'is_parsing_analogy_details'
+    ];
+
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'category_parsing_at',
+        'detail_parsing_at'
+    ];
+
 }
+

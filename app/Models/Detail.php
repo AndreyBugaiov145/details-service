@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -51,6 +52,37 @@ use Illuminate\Database\Eloquent\Model;
 class Detail extends Model
 {
     use HasFactory;
+    use Sluggable;
+
+    protected $fillable = [
+        'title',
+        'slug',
+        's_number',
+        'short_description',
+        'interchange_numbers',
+        'price',
+        'new_price',
+        'shipping_price',
+        'total_price',
+        'coefficient',
+        'category_id',
+        'currency_id',
+        'partkey',
+    ];
+
+    /**
+     * Return the sluggable configuration array for this model.
+     *
+     * @return array
+     */
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'title'
+            ]
+        ];
+    }
 
     public function category()
     {

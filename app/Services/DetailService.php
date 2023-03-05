@@ -6,8 +6,10 @@ use App\Exceptions\GrabberException;
 use App\Models\Category;
 use App\Models\Currency;
 use App\Models\Detail;
+use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
 use Arr;
+use ArrayObject;
 use Carbon\Carbon;
 use Log;
 use phpDocumentor\Reflection\Types\Boolean;
@@ -58,21 +60,48 @@ class DetailService
             $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
             if ($result) {
                 $details = $this->getDetails($this->detailsData);
-                $this->fetchAnalogyDetails($details);
+                $analogyDetailsData = $this->fetchAnalogyDetails($details);
+                if ($this->saveAnalogyDetails($analogyDetailsData)) {
+                    Detail::whereIn('id', array_unique(array_map(function ($item) {
+                        return $item['detail_id'];
+                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
+                };
             }
-
-        } catch (GrabberException $e) {
+        } catch (\Exception $e) {
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->category_parsing_at = Carbon::now();
             $this->parsingSetting->detail_parsing_at = Carbon::now();
             $this->parsingSetting->save();
 
-            Log::warning($e->getMessage(), $e->getTrace());
+            Log::critical($e->getMessage(), $e->getTrace());
+            dump($e->getMessage());
+            dd($e->getTrace());
+        }
+
+        Log::info('fetching finish');
+    }
+
+    public function fetchDetailsInfo($categoriesData)
+    {
+        Log::info('Start fetching Details Only');
+        try {
+            $this->fetchChildCategories($categoriesData);
+            $this->attempts = 0;
+            dump($this->detailsData);
+
+            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
+            if ($result) {
+                $details = $this->getDetails($this->detailsData);
+                $analogyDetailsData = $this->fetchAnalogyDetails($details);
+                if ($this->saveAnalogyDetails($analogyDetailsData)) {
+                    Detail::whereIn('id', array_unique(array_map(function ($item) {
+                        return $item['detail_id'];
+                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
+                };
+            }
         } catch (\Exception $e) {
-            $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
-            $this->parsingSetting->category_parsing_at = Carbon::now();
             $this->parsingSetting->detail_parsing_at = Carbon::now();
             $this->parsingSetting->save();
 
@@ -96,6 +125,7 @@ class DetailService
                             $uid = \Str::random(25);
                         } while (in_array($uid, $uidArr));
                         $uidArr[] = $uid;
+
                         $newItem = $item;
                         if ($addUid) {
                             $newItem['uid'] = $uid;
@@ -109,7 +139,7 @@ class DetailService
         return $result;
     }
 
-    public function fetchMainCategories()
+    protected function fetchMainCategories()
     {
         Log::info('start fetching main categories');
         do {
@@ -133,7 +163,7 @@ class DetailService
         return $sliceCategoriesData;
     }
 
-    public function fetchMainYearsCategories(array $data)
+    protected function fetchMainYearsCategories(array $data)
     {
         Log::info('start fetching years by main categories');
         $categoriesData = [];
@@ -175,7 +205,7 @@ class DetailService
         return $categoriesData;
     }
 
-    public function fetchCarModels(array $data)
+    protected function fetchCarModels(array $data)
     {
         Log::info('start fetching  Car Models categories');
         $data = $this->array2Dto1DAndAddUid($data);
@@ -224,7 +254,7 @@ class DetailService
         return $categoriesData;
     }
 
-    public function parseAndSaveYearsCategoryItems(array $info): array
+    protected function parseAndSaveYearsCategoryItems(array $info): array
     {
         $html = $this->getCategoryHtmlFromStream($info['responseArr']['value']);
         $item = Arr::first($info['data'], function ($item) use ($info) {
@@ -249,7 +279,7 @@ class DetailService
         return $sliceCategoriesData;
     }
 
-    public function parseAndSaveCarModelsCategoryItems(array $info): array
+    protected function parseAndSaveCarModelsCategoryItems(array $info): array
     {
         $html = $this->getCategoryHtmlFromStream($info['responseArr']['value']);
         $item = Arr::first($info['data'], function ($item) use ($info) {
@@ -275,7 +305,7 @@ class DetailService
         return $sliceCategoriesData;
     }
 
-    public function getCategoryHtmlFromStream($stream)
+    protected function getCategoryHtmlFromStream($stream)
     {
         $data = json_decode((string)$stream->getBody(), true);
         if (isset($data['html_fill_sections']) && is_array($data['html_fill_sections'])) {
@@ -285,7 +315,17 @@ class DetailService
         return '';
     }
 
-    public function fetchRequestCategories($data)
+    protected function getBuyersGuiHtmlFromStream($stream)
+    {
+        $data = json_decode((string)$stream->getBody(), true);
+        if (isset($data['buyersguidepieces']) && is_array($data['buyersguidepieces'])) {
+            return reset($data['buyersguidepieces']);
+        }
+
+        return '';
+    }
+
+    protected function fetchRequestCategories($data)
     {
         $this->request_count += count($data);
         $rejectedCategoryData = [];
@@ -308,7 +348,7 @@ class DetailService
         ];
     }
 
-    public function fetchChildCategories(array $data)
+    protected function fetchChildCategories(array $data)
     {
         Log::info('start fetching child categories', $data);
         $this->attempts = 0;
@@ -366,12 +406,9 @@ class DetailService
         if (count($newAllCategoriesData) > 0) {
             $this->fetchChildCategories($newAllCategoriesData);
         }
-
-        return;
-
     }
 
-    public function saveCategory(&$data)
+    protected function saveCategory(&$data)
     {
         foreach ($data as $key => $item) {
             $categoryData = ['title' => $item['title']];
@@ -386,7 +423,7 @@ class DetailService
         }
     }
 
-    public function saveDetails(array $detailsData)
+    protected function saveDetails(array $detailsData)
     {
         $result = Detail::upsert($detailsData, ['title', 'category_id'], [
             'price',
@@ -415,7 +452,74 @@ class DetailService
         return Detail::whereIn('category_id', $categoryIds)->where('is_parsing_analogy_details', false)->get();
     }
 
-    public function fetchAnalogyDetails($details){
+    protected function fetchAnalogyDetails($details)
+    {
+        Log::info('start fetching Analogy Details', $details->toArray());
+        $this->attempts = 0;
+        $analogyDetails = [];
+        $data = $details->toArray();
+        Log::info('start fetching Analogy Details count' . count($data));
+        $result = $this->fetchRequestAnalogyDetails($data);
+        if ($this->attempts > $this->max_attempts) {
+            throw new GrabberException("Failed fetchAnalogyDetails. attempts > $this->attempts");
+            Log::critical('Faeil max_attempts', $data);
+        }
 
+        do {
+            $this->attempts++;
+            if ($this->attempts > $this->max_attempts) {
+                throw new GrabberException("Failed fetching AnalogyDetails. attempts > $this->attempts");
+            }
+            $rez = $this->fetchRequestAnalogyDetails($result['rejected']);
+            $result['rejected'] = $rez['rejected'];
+            $result['success'] = array_replace($result['success'], $rez['success']);
+            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+        } while (count($result['rejected']));
+
+        foreach ($result['success'] as $key => $responseArr) {
+            $html = $this->getBuyersGuiHtmlFromStream($responseArr['value']);
+            $item = Arr::first($data, function ($item) use ($key) {
+                return $item['id'] == $key;
+            });
+
+            $parser = new ParserService($html);
+
+            $detailsData = $parser->getAnalogyDetails();
+
+            foreach ($detailsData as $i => $detail) {
+                $detailsData[$i]['detail_id'] = $item['id'];
+            }
+            $analogyDetails[] = $detailsData;
+        }
+
+        return $this->array2Dto1DAndAddUid($analogyDetails, false);
+    }
+
+    protected function fetchRequestAnalogyDetails($data)
+    {
+        $this->request_count += count($data);
+        $rejectedCategoryData = [];
+        $successCategoryData = [];
+        $result = $this->grabber->getAsyncDetailsBuyersGuid($data);
+
+        foreach ($result as $key => $responseArr) {
+            if ($responseArr['state'] === 'rejected') {
+                $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {
+                    return $item['id'] == $key;
+                });
+            } else {
+                $successCategoryData[$key] = $responseArr;
+            }
+        }
+
+        return [
+            'success' => $successCategoryData,
+            'rejected' => $rejectedCategoryData,
+        ];
+    }
+
+    private function saveAnalogyDetails(array $analogyDetailsData)
+    {
+        return DetailAnalogue::upsert($analogyDetailsData, []);
     }
 }

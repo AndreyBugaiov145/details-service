@@ -3,8 +3,11 @@
 use App\Exceptions\GrabberException;
 use App\Http\Controllers\ParsingSettingController;
 use App\Http\Controllers\Users;
+use App\Models\Category;
 use App\Models\Detail;
+use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
+use App\Services\CategoryService;
 use App\Services\GrabberService;
 use App\Services\ParserService;
 use App\Services\ProxyScrape;
@@ -45,8 +48,8 @@ Route::get('/parse', function () {
     dump(convert2(memory_get_usage(true)));
     $start = microtime(true);
     $QueueService = new QueueService();
-    $QueueService->grabbingInNotPlanned();
-    dump(21);
+    $QueueService->grabbingDetails();
+    dump(23);
     echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
     dump(convert2(memory_get_usage(true)));
     dd(1);

@@ -74,6 +74,7 @@ class GrabberService
                 ]
             ]),
             'func' => 'getbuyersguide',
+            'scbeenloaded' => true,
             'api_json_request' => 1,
         ];
     }
@@ -97,24 +98,9 @@ class GrabberService
         return (string)$response->getBody();
     }
 
-    public function getChildCategories(array $jsn): string
+    protected function getAsyncRequestChildCategory(array $jsn, string $proxy)
     {
-        $response = $this->httpClient->post($this->mainPageUrl, [
-            'form_params' => $this->getNavNodeFetchFormData($jsn),
-            'timeout' => $this->timeOut,
-        ]);
-
-        $data = json_decode((string)$response->getBody(), true);
-        if (isset($data['html_fill_sections']) && is_array($data['html_fill_sections'])) {
-            return reset($data['html_fill_sections']);
-        }
-
-        return '';
-    }
-
-    public function getAsyncChildCategory(array $jsn, string $proxy)
-    {
-        return $this->httpClient->postAsync($this->mainPageUrl, [
+        return $this->httpClient->postAsync($this->fetchUrl, [
             'form_params' => $this->getNavNodeFetchFormData($jsn),
             'headers' => $this->getHeaders(),
             'timeout' => $this->timeout,
@@ -136,7 +122,7 @@ class GrabberService
                 $proxy = Arr::random($this->getProxies(count($chunk)));
                 $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
                 $key = $uid . '|' . $proxy;
-                $promises[$key] = $this->getAsyncChildCategory($item['jsn'], $proxy);
+                $promises[$key] = $this->getAsyncRequestChildCategory($item['jsn'], $proxy);
             }
             $responses = Promise\settle($promises)->wait();
 
@@ -158,20 +144,52 @@ class GrabberService
         return $result;
     }
 
-    public function getDetailBuyersGuide($href): string
+    protected function getAsyncRequestDetailBuyersGuide($partkey, string $proxy)
     {
-        $response = $this->httpClient->post($this->mainPageUrl, [
-            'form_params' => $this->getBuyersGuideFetchFormData($href),
-            'timeout' => $this->timeOut,
-//            'proxy' => '68.183.103.250:3128'
+        return $this->httpClient->postAsync($this->fetchUrl, [
+            'form_params' => $this->getBuyersGuideFetchFormData($partkey),
+            'headers' => $this->getHeaders(),
+            'timeout' => $this->timeout,
+            'connect_timeout' => $this->connect_timeout,
+            'proxy' => $proxy,
         ]);
+    }
 
-        $data = json_decode((string)$response->getBody(), true);
-        if (isset($data['buyersguidepieces']) && isset($data['buyersguidepieces']['body'])) {
-            return $data['buyersguidepieces']['body'];
+    public function getAsyncDetailsBuyersGuid(array $data)
+    {
+        $failedProxy = [];
+
+        $chunks = array_chunk($data, $this->chunkCount);
+        $result = [];
+
+        foreach ($chunks as $chunk) {
+            $promises = [];
+            foreach ($chunk as $item) {
+
+                $proxy = Arr::random($this->getProxies(count($chunk)));
+                $uid = $item['id'];
+                $key = $uid . '|' . $proxy;
+                $promises[$key] = $this->getAsyncRequestDetailBuyersGuide($item['partkey'], $proxy);
+            }
+
+            $responses = Promise\settle($promises)->wait();
+            foreach ($responses as $key => $responseArr) {
+                try {
+                    [$uid, $proxy] = explode('|', $key);
+                } catch (\Exception $e) {
+
+                }
+                $result[$uid] = $responseArr;
+                if ($responseArr['state'] === 'rejected') {
+                    $failedProxy[] = $proxy;
+                    $this->deleteProxy($proxy);
+                }
+            }
+            $this->proxyService->incrementFailedProxy($failedProxy);
         }
 
-        return '';
+        return $result;
     }
+
 
 }

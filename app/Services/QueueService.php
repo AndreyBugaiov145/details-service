@@ -22,28 +22,50 @@ class QueueService
                 $this->grabbingDetails($parsingSetting);
             }
         }
-
     }
 
-    public function grabbingPlanned()
+    public function grabbingCategoriesAndDetailsPlanned()
     {
-        ParsingSetting::where([
-            ['category_parsing_status', '=', ParsingSetting::STATUS_SUCCESS, 'or'],
-            ['detail_parsing_status', '=', null, 'or'],
-            ['category_parsing_status', '=', null, 'or'],
-        ])
-            ->orderBy('created_at')->orderBy('category_parsing_at')->orderBy('detail_parsing_at')
-            ->get();
+        ParsingSetting::whereNotNull('brand')
+            ->update([
+                'category_parsing_status' => ParsingSetting::STATUS_PENDING,
+                'detail_parsing_status' => ParsingSetting::STATUS_PENDING,
+            ]);
+    }
+
+    public function grabbingDetailsPlanned()
+    {
+        ParsingSetting::whereNotNull('brand')
+            ->update([
+                'detail_parsing_status' => ParsingSetting::STATUS_PENDING,
+            ]);
     }
 
     public function grabbingCategories($parsingSetting)
     {
+        $parsingSetting->update([
+            'category_parsing_status' => ParsingSetting::STATUS_IN_PROGRESS,
+            'detail_parsing_status' => ParsingSetting::STATUS_IN_PROGRESS,
+        ]);
+
         $detailService = new DetailService($parsingSetting);
         $detailService->fetchCategoriesAndDetailsInfo();
     }
 
-    public function grabbingDetails($parsingSetting)
+    public function grabbingDetails()
     {
+        $parsingSetting = ParsingSetting::where('detail_parsing_status', ParsingSetting::STATUS_PENDING)
+            ->orderBy('detail_parsing_at')->first();
+        if (is_null($parsingSetting)){
+            return;
+        }
+//        $parsingSetting->update([
+//            'detail_parsing_status' => ParsingSetting::STATUS_IN_PROGRESS,
+//        ]);
 
+        $categories = CategoryService::getLastChildrenCategories($parsingSetting->brand);
+
+        $detailService = new DetailService($parsingSetting);
+        $detailService->fetchDetailsInfo([$categories]);
     }
 }

@@ -58,7 +58,7 @@ class ParserService
             $result = [];
             preg_match("~[^\d]*(\d*\.?\d*)[^\d]*~", $tbody->find('span.listing-price')[0]->firstChild()->text, $result);
             if (isset($result[1])) {
-                $price =$result[1] ?: 0.0;
+                $price = $result[1] ?: 0.0;
             } else {
                 $price = 0.0;
             }
@@ -86,5 +86,26 @@ class ParserService
         return count($divs) > 0;
     }
 
-
+    public function getAnalogyDetails()
+    {
+        $data = [];
+        $trs = $this->dom->find('div.buyersguide-nested table tr');
+        foreach ($trs as $tr) {
+            $tds = $tr->find('td');
+            if (count($tds) > 2) {
+                $data[] = [
+                    'brand' => optional($tds[0])->text,
+                    'model' => optional($tds[1])->text,
+                    'years' => optional($tds[2])->text,
+                ];
+            } else {
+                $data[] = [
+                    'brand' => optional($tds[0])->text,
+                    'years' => optional($tds[1])->text,
+                    'model' => null,
+                ];
+            }
+        }
+        return $data;
+    }
 }

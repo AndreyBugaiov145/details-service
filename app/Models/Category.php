@@ -41,12 +41,16 @@ class Category extends Model
         'jsn'
     ];
 
+    protected $casts = [
+        'jsn' => 'array',
+    ];
+
     public function parent()
     {
         return $this->belongsTo(Category::class, 'parent_id', 'id');
     }
 
-    public function childs()
+    public function children()
     {
         return $this->hasMany(Category::class, 'parent_id', 'id');
     }
@@ -55,4 +59,20 @@ class Category extends Model
     {
         return $this->hasMany(Detail::class);
     }
+
+    public function scopeWithAllChildrenWithDetails($query)
+    {
+        return $query->with(['children' => function ($query) {
+            $query->withAllChildrenWithDetails();
+        }
+            , 'details']);
+    }
+
+    public function scopeWithAllChildren($query)
+    {
+        return $query->with(['children' => function ($query) {
+            $query->withAllChildren();
+        }]);
+    }
+
 }

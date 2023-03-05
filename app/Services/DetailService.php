@@ -215,15 +215,11 @@ class DetailService
 
     public function fetchChildCategories(array $data)
     {
-        $this->i++;
-        if ($this->i > 5) {
-            return;
-        }
-
         Log::info('start fetching child categories', $data);
         $this->attempts = 0;
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
+        Log::info('start fetching child categories count' . count($data));
         $result = $this->fetchRequestCategories($data);
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
@@ -238,6 +234,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
+            Log::info(' fetching child categories rejected count' . count($result['rejected']));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {

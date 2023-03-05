@@ -39,10 +39,12 @@ Route::get('/parse', function () {
         $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
         return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
     }
+
     dump(convert2(memory_get_usage(true)));
     $start = microtime(true);
     $detailService = new \App\Services\DetailService();
     $detailService->fetchDetailsInfo();
+    dump($detailService->request_count);
     echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
     dump(convert2(memory_get_usage(true)));
     dd(1);
@@ -51,17 +53,200 @@ Route::get('/parse', function () {
 });
 
 Route::get('/test4', function () {
-$PARSER = new ParserService('<div><input type="hidden" autocomplete="off" name="listing_data_essential[331]" id="listing_data_essential[331]" value="{&quot;groupindex&quot;:&quot;331&quot;,&quot;carcode&quot;:&quot;1436031&quot;,&quot;parttype&quot;:&quot;2136&quot;,&quot;partkey&quot;:&quot;120543&quot;,&quot;opts&quot;:{&quot;0-0-0-1&quot;:{&quot;warehouse&quot;:&quot;92501&quot;,&quot;whpartnum&quot;:&quot;FEL 35063&quot;,&quot;optionlist&quot;:&quot;0&quot;,&quot;paramcode&quot;:&quot;0&quot;,&quot;notekey&quot;:&quot;0&quot;,&quot;multiple&quot;:&quot;1&quot;}}}"></div>>');
+    $start = microtime(true);
+
+    $request = new Request('PUT', 'http://httpbin.org/put');
+    $request2 = new Request('PUT', 'http://httpbin.org/ip');
+    $client = new \GuzzleHttp\Client();
+    $pr = new ProxyService();
+    $rez = [];
+    $r = $pr->getProxies();
+    dd($r);
+//    for ($i = 0; $i < 0; $i++) {
+//        $r = $pr->getProxies();
+//        echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+//        $rez = array_merge($rez, $r);
+//    }
+//    $r = $pr->getProxies();
+//    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+//    $r2 = $pr->getProxies();
+//    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+//    $r3 = $pr->getProxies();
+//    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+//    $r4 = $pr->getProxies();
+//    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+//    $r5 = $pr->getProxies();
+//    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+//    dd(array_merge($r, $r2,$r3, $r4, $r5));
+    $rq1 = $client->getAsync(
+        'https://www.rockauto.com/',
+        [
+            'timeout' => 30,
+            'connect_timeout' => 15,
+            'proxy' => '183.172.208.225:7891',
+            'headers' => [
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+            ],
+        ]);
+    $rq4 = $client->getAsync(
+        'https://www.rockauto.com/',
+        [
+            'timeout' => 30,
+            'connect_timeout' => 15,
+            'proxy' => '183.172.208.225:7891',
+            'headers' => [
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+            ],
+        ]);
+
+
+    $promises = [
+        '183.172.208.225:7891',
+        '183.172.208.225:7891',
+        '183.172.208.225:7891'
+    ];
+
+    $proxiesChunks = array_chunk($promises, 1);
+    foreach($proxiesChunks as $proxies){
+        $promises  = [];
+        foreach($proxies as $proxy){
+            $promises[] =  $client->getAsync(
+                'https://www.rockauto.com/',
+                [
+                    'timeout' => 30,
+                    'connect_timeout' => 15,
+                    'proxy' => $proxy,
+                    'headers' => [
+                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+                    ],
+                ]);;
+        }
+
+        $promise = Promise\settle($promises);
+        $result = $promise->wait();
+        dump($result);
+    }
+
+
+//    function fetch1(array $promisesChunks , $rez = null){
+//        $client = new \GuzzleHttp\Client();
+//        $rez = [];
+//        $proxys = array_shift($promisesChunks);
+//        foreach($proxys as $proxy){
+//            $promises =   $client->getAsync(
+//            'https://www.rockauto.com/',
+//            [
+//                'timeout' => 30,
+//                'connect_timeout' => 15,
+//                'proxy' => $proxy,
+//                'headers' => [
+//                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+//                ],
+//            ]);;
+//        }
+//        $promise = Promise\settle($promises);
+//        $result = $promise->wait();
+//        $rez[] = $result;
+//        echo 'Время выполнения ';
+//        dump($rez);
+//        if (count($promisesChunks) > 0) {
+//            $rez[] = fetch1($promisesChunks,$result);
+//        }
+//        return $rez;
+//    }
+//
+//
+//
+//    fetch1($promisesChunks);
+
+
+
+
+
+    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+
+    dd(1);
+    $start = microtime(true);
+    $proxies = $pr->getProxies();
+
+    dump($proxies);
+    $client = new \GuzzleHttp\Client();
+    foreach ($proxies as $key => $proxy) {
+        $promises[$key] = $client->getAsync(
+            'https://www.rockauto.com/',
+            [
+                'timeout' => 30,
+                'connect_timeout' => 15,
+                'proxy' => $proxy,
+                'headers' => [
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+                ],
+            ]);
+    }
+    try {
+//        $promise = Promise\settle($promises);
+//        $results = $promise->wait();
+        $success = [];
+        $times = [];
+        $chunks = array_chunk($promises, 15, true);
+////        dd(1);
+//        dump('geted proxies');
+//        $start = microtime(true);
+//        function gen_one_to_three($chunks ,$start,&$times) {
+//            foreach ($chunks as $chunk) {
+//                dump('$chunk');
+//                // Обратите внимание, что $i сохраняет своё значение между вызовами.
+//                $times[] = round(microtime(true) - $start, 4) ;
+//                $promise = Promise\settle($chunk);
+//                yield $rez =$promise->wait();
+//
+//            }
+//        }
+//
+//        $generator = gen_one_to_three($chunks,$start,$times);
+//        foreach ($generator as $value) {
+//             dump($value);
+//        }
+//        dump($times);
+//        echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+//        dd(1);
+////
+
+        foreach ($chunks as $chunk) {
+            echo 'Время выполнения скрипта: ';
+            $promise = Promise\settle($chunk);
+            $results = $promise->wait();
+            foreach ($results as $key => $r) {
+                if ($r['state'] != 'rejected') {
+                    $success[$key] = $r;
+                }
+            }
+        }
+        foreach ($results as $key => $r) {
+            if ($r['state'] != 'rejected') {
+                $success[] = $r;
+            }
+        }
+        echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+        dump($success);
+        dd($results);
+    } catch (\GuzzleHttp\Exception\ConnectException $e) {
+        dd(1);
+    }
+
+
+    $PARSER = new ParserService('<div><input type="hidden" autocomplete="off" name="listing_data_essential[331]" id="listing_data_essential[331]" value="{&quot;groupindex&quot;:&quot;331&quot;,&quot;carcode&quot;:&quot;1436031&quot;,&quot;parttype&quot;:&quot;2136&quot;,&quot;partkey&quot;:&quot;120543&quot;,&quot;opts&quot;:{&quot;0-0-0-1&quot;:{&quot;warehouse&quot;:&quot;92501&quot;,&quot;whpartnum&quot;:&quot;FEL 35063&quot;,&quot;optionlist&quot;:&quot;0&quot;,&quot;paramcode&quot;:&quot;0&quot;,&quot;notekey&quot;:&quot;0&quot;,&quot;multiple&quot;:&quot;1&quot;}}}"></div>>');
     $input_partKey = $PARSER->dom->find('input[name^=listing_data_essential]')[0];
     dd(json_decode(html_entity_decode($input_partKey->getAttribute('value')))->partkey);
-   $rez = json_decode($input_partKey->getAttribute('value'))['partkey'];
-   dd( $rez);
+    $rez = json_decode($input_partKey->getAttribute('value'))['partkey'];
+    dd($rez);
 
     function convert1($size)
     {
         $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
         return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
     }
+
     dump(convert1(memory_get_usage(true)));
     $ProxyService = new ProxyService();
 
@@ -69,7 +254,7 @@ $PARSER = new ParserService('<div><input type="hidden" autocomplete="off" name="
 ////    $proxies =$ProxyService->fetchProxy();
 //    $requests = $ProxyService->createAsyncRequestsArr($proxies);
 //    $result = $ProxyService->checkProxyList($requests);
-$rez = $ProxyService->fetchAndSaveProxies();
+    $rez = $ProxyService->fetchAndSaveProxies();
     dd($rez);
     dump(convert1(memory_get_usage(true)));
     dd($rez);
@@ -182,9 +367,9 @@ Route::get('/test', function () {
 //    dd(1);
 
     $httpClient = new \GuzzleHttp\Client();
-    $response = $httpClient->get('https://www.rockauto.com/en/catalog/acura,2020,ilx,2.4l+l4,3445092,accessories,trailer+connector,2628',['timeout' => 15,]
+    $response = $httpClient->get('https://www.rockauto.com/en/catalog/acura,2020,ilx,2.4l+l4,3445092,accessories,trailer+connector,2628', ['timeout' => 15,]
     );
-    $html= (string)$response->getBody();
+    $html = (string)$response->getBody();
     dd($html);
     $request = new Request('GET', 'https://www.russianfood.com/');
 

@@ -33,7 +33,7 @@ class ParsingSettingController extends Controller
     public function update(ParsingSettingRequest $request, $id)
     {
         ParsingSetting::where('id', $id)
-            ->update($request->only('brand','year_from','year_to'));
+            ->update($request->only(['brand','year','car_models','is_show']));
 
         return ApiResponseServices::successCustomData();
     }
@@ -47,6 +47,25 @@ class ParsingSettingController extends Controller
     {
         ParsingSetting::where('id', $id)
             ->delete();
+
+        return ApiResponseServices::successCustomData();
+    }
+
+    public function updateCategoryParsingStatus($id){
+        ParsingSetting::where('id', $id)
+            ->update([
+                'category_parsing_status'=>ParsingSetting::STATUS_PENDING,
+                'detail_parsing_status'=>ParsingSetting::STATUS_PENDING,
+            ]);
+
+        return ApiResponseServices::successCustomData();
+    }
+
+    public function updateDetailParsingStatus($id){
+        ParsingSetting::where('id', $id)
+            ->update([
+                'detail_parsing_status'=>ParsingSetting::STATUS_PENDING,
+            ]);
 
         return ApiResponseServices::successCustomData();
     }

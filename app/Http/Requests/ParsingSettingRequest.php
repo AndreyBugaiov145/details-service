@@ -33,8 +33,7 @@ class ParsingSettingRequest extends FormRequest
     {
         return [
             'brand' => 'required|string',
-            'year_from' => 'required|integer',
-            'year_to' => 'required|integer',
+            'year' => 'required|integer',
         ];
     }
 }

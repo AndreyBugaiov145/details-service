@@ -3,12 +3,16 @@
 use App\Exceptions\GrabberException;
 use App\Http\Controllers\ParsingSettingController;
 use App\Http\Controllers\Users;
+use App\Models\Category;
 use App\Models\Detail;
+use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
+use App\Services\CategoryService;
 use App\Services\GrabberService;
 use App\Services\ParserService;
 use App\Services\ProxyScrape;
 use App\Services\ProxyService;
+use App\Services\QueueService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
@@ -34,6 +38,7 @@ use function App\Services\convert;
 */
 
 Route::get('/parse', function () {
+
     function convert2($size)
     {
         $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
@@ -42,9 +47,9 @@ Route::get('/parse', function () {
 
     dump(convert2(memory_get_usage(true)));
     $start = microtime(true);
-    $detailService = new \App\Services\DetailService();
-    $detailService->fetchDetailsInfo();
-    dump($detailService->request_count);
+    $QueueService = new QueueService();
+    $QueueService->grabbingDetails();
+    dump(23);
     echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
     dump(convert2(memory_get_usage(true)));
     dd(1);
@@ -107,10 +112,10 @@ Route::get('/test4', function () {
     ];
 
     $proxiesChunks = array_chunk($promises, 1);
-    foreach($proxiesChunks as $proxies){
-        $promises  = [];
-        foreach($proxies as $proxy){
-            $promises[] =  $client->getAsync(
+    foreach ($proxiesChunks as $proxies) {
+        $promises = [];
+        foreach ($proxies as $proxy) {
+            $promises[] = $client->getAsync(
                 'https://www.rockauto.com/',
                 [
                     'timeout' => 30,
@@ -158,9 +163,6 @@ Route::get('/test4', function () {
 //
 //
 //    fetch1($promisesChunks);
-
-
-
 
 
     echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
@@ -501,7 +503,7 @@ Route::prefix('admin')->group(function () {
         return view('admin.parser-setting');
     })->middleware('auth')->name('parser-setting');
     Route::resource('/settings', ParsingSettingController::class)->except(['show', 'edit', 'create'])->middleware('auth');
-    Route::get('/settings/{id}/update_category_parsing_status', [ParsingSettingController::class,'updateCategoryParsingStatus'])->middleware('auth');
-    Route::get('/settings/{id}/update_detail_parsing_status', [ParsingSettingController::class,'updateDetailParsingStatus'])->middleware('auth');
+    Route::get('/settings/{id}/update_category_parsing_status', [ParsingSettingController::class, 'updateCategoryParsingStatus'])->middleware('auth');
+    Route::get('/settings/{id}/update_detail_parsing_status', [ParsingSettingController::class, 'updateDetailParsingStatus'])->middleware('auth');
 });
 

@@ -16,8 +16,8 @@ class CreateDetailAnaloguesTable extends Migration
         Schema::create('detail_analogues', function (Blueprint $table) {
             $table->id();
             $table->string('brand');
-            $table->string('model');
-            $table->string('years');
+            $table->string('model')->nullable();
+            $table->string('years')->nullable();
             $table->unsignedBigInteger('detail_id')->unsigned();
             $table->foreign('detail_id')->references('id')->on('details');
             $table->timestamps();

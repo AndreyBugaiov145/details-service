@@ -17,6 +17,8 @@ class CreateGrabberStatisticsTable extends Migration
             $table->id();
             $table->integer('parsing_setting_id');
             $table->string('parsing_status');
+            $table->integer('request_count');
+            $table->timestamp('request_time');
             $table->string('parsing_type');
             $table->timestamps();
         });

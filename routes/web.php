@@ -501,5 +501,7 @@ Route::prefix('admin')->group(function () {
         return view('admin.parser-setting');
     })->middleware('auth')->name('parser-setting');
     Route::resource('/settings', ParsingSettingController::class)->except(['show', 'edit', 'create'])->middleware('auth');
+    Route::get('/settings/{id}/update_category_parsing_status', [ParsingSettingController::class,'updateCategoryParsingStatus'])->middleware('auth');
+    Route::get('/settings/{id}/update_detail_parsing_status', [ParsingSettingController::class,'updateDetailParsingStatus'])->middleware('auth');
 });
 

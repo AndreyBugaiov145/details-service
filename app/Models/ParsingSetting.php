@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * App\Models\ParsingSetting
@@ -29,15 +30,20 @@ class ParsingSetting extends Model
 {
     use HasFactory;
 
+    const STATUS_PENDING = 'pending';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_SUCCESS = 'success';
+    const STATUS_FAIL = 'fail';
+
     protected $fillable = [
         'brand',
-        'year_from',
-        'year_to',
+        'year',
         'category_parsing_at',
         'car_models',
         'detail_parsing_at',
         'category_parsing_status',
         'detail_parsing_status',
+        'is_show',
         'is_parsing_analogy_details'
     ];
 
@@ -47,6 +53,10 @@ class ParsingSetting extends Model
         'category_parsing_at',
         'detail_parsing_at'
     ];
+
+    public function getCategoryParsingAtAttribute($value) {
+        return Carbon::parse($value)->format('Y-m-d');
+    }
 
 }
 

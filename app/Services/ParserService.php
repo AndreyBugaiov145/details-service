@@ -54,7 +54,15 @@ class ParserService
             foreach ($short_description_a_elems as $span) {
                 $short_description .= $span->text;
             }
-            $price = (float)substr($tbody->find('span.listing-price')[0]->firstChild()->text, 1);
+
+            $result = [];
+            preg_match("~[^\d]*(\d*\.?\d*)[^\d]*~", $tbody->find('span.listing-price')[0]->firstChild()->text, $result);
+            if (isset($result[1])) {
+                $price =$result[1] ?: 0.0;
+            } else {
+                $price = 0.0;
+            }
+
             $input_partKey = $tbody->find('input[name^=listing_data_essential]')[0];
             $partkey = null;
             if ($input_partKey) {

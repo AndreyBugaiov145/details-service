@@ -23,7 +23,6 @@ class CreateParsingSettingsTable extends Migration
             $table->timestamp('detail_parsing_at')->nullable();
             $table->string('category_parsing_status')->default(ParsingSetting::STATUS_PENDING);
             $table->string('detail_parsing_status')->default(ParsingSetting::STATUS_PENDING);
-            $table->boolean('is_parsing_analogy_details')->default(false);
             $table->boolean('is_show')->default(true);
             $table->timestamps();
         });

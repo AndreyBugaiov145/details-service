@@ -33,8 +33,8 @@ class GrabberService
         $count = $count / 10 > 20 ? $count / 10 : 20;
         if (count($this->proxies) < $count) {
             $this->proxies = $this->proxyService->getProxies();
-            dump( 'need count'.$count);
-            dump( 'get new proxies'.count($this->proxies));
+            \Log::info('need count' . $count . '.Get new proxies' . count($this->proxies));
+            dump('need count' . $count . '.Get new proxies' . count($this->proxies));
         }
 
         return $this->proxies;

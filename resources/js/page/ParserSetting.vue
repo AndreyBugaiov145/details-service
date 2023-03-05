@@ -12,11 +12,11 @@
                 <form>
                     <div class="form-group">
                         <label for="brand">Бренд</label>
-                        <input type="text" v-model="setting.brand" class="form-control" id="brand" aria-describedby="emailHelp">
+                        <input type="text" v-model.trim="setting.brand" class="form-control" id="brand" aria-describedby="emailHelp">
                     </div>
                     <div class="form-group">
                         <label for="car_models">Моделі машин (Вводити через кому!)</label>
-                        <input type="text" v-model="setting.car_models" class="form-control" id="car_models" aria-describedby="emailHelp">
+                        <input type="text" v-model.trim="setting.car_models" class="form-control" id="car_models" aria-describedby="emailHelp">
                     </div>
                     <div class="form-group">
                         <label for="year">Рік</label>

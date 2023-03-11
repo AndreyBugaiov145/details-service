@@ -9,6 +9,7 @@ use App\Models\Detail;
 use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
 use App\Services\CategoryService;
+use App\Services\CurrencyService;
 use App\Services\FetchingService;
 use App\Services\ParserService;
 use App\Services\ProxyScrape;
@@ -84,16 +85,22 @@ Route::prefix('admin')->group(function () {
 
 Route::get('/job', function () {
 
-    $Category = Category::first();
-    var_dump($Category->jsn);
-    dd($Category->jsn);
-    $parsingSetting = ParsingSetting::first();
-//    GrabbingDetails::dispatch($parsingSetting);
-    $job = new GrabbingDetails($parsingSetting);
-    dispatch($job);
-//   dispatch($job);
-    dd(1);
+   $CurrencyService =  new CurrencyService();
+    $CurrencyService->updateUAHRate();
+dd(1);
+    $client = new \GuzzleHttp\Client();
+    $rq1 = $client->get(
+        'https://api.apilayer.com/fixer/latest?base=USD&symbols=UAH',
+        [
+            'timeout' => 30,
+            'connect_timeout' => 15,
+            'headers' => [
+                'apikey' => '3nnaqfJfoClzFm962FaLJ6hxZ0Bs64iO',
+            ],
+        ]);
 
+    $rez = (string) $rq1->getBody();
+    dd($rez);
 });
 
 Route::get('/parse', function () {

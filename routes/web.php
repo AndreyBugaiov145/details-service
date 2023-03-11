@@ -3,16 +3,17 @@
 use App\Exceptions\GrabberException;
 use App\Http\Controllers\ParsingSettingController;
 use App\Http\Controllers\Users;
+use App\Jobs\GrabbingDetails;
 use App\Models\Category;
 use App\Models\Detail;
 use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
 use App\Services\CategoryService;
-use App\Services\GrabberService;
+use App\Services\FetchingService;
 use App\Services\ParserService;
 use App\Services\ProxyScrape;
 use App\Services\ProxyService;
-use App\Services\QueueService;
+use App\Services\GrabberService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
@@ -37,6 +38,20 @@ use function App\Services\convert;
 |
 */
 
+Route::get('/job', function () {
+
+   $Category = Category::first();
+    var_dump($Category->jsn);
+    dd($Category->jsn);
+   $parsingSetting = ParsingSetting::first();
+//    GrabbingDetails::dispatch($parsingSetting);
+   $job = new GrabbingDetails($parsingSetting);
+   dispatch($job);
+//   dispatch($job);
+   dd(1);
+
+});
+
 Route::get('/parse', function () {
 
     function convert2($size)
@@ -47,7 +62,7 @@ Route::get('/parse', function () {
 
     dump(convert2(memory_get_usage(true)));
     $start = microtime(true);
-    $QueueService = new QueueService();
+    $QueueService = new GrabberService();
     $QueueService->grabbingDetails();
     dump(23);
     echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';

@@ -26,7 +26,7 @@ class CurrencyService
         }
     }
 
-    public function getCurrencyUAHRateInHTML($html)
+    protected function getCurrencyUAHRateInHTML($html)
     {
         $rate = null;
         $dom = new Dom;
@@ -41,7 +41,7 @@ class CurrencyService
         return $rate;
     }
 
-    public function getCurrencyRatePage(): string
+    protected function getCurrencyRatePage(): string
     {
         $response = $this->httpClient->get(
             'https://minfin.com.ua/currency/auction/usd/buy/all/',

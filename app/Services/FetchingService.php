@@ -34,7 +34,6 @@ class FetchingService
         if (count($this->proxies) < $count) {
             $this->proxies = $this->proxyService->getProxies();
             \Log::info('need count' . $count . '.Get new proxies' . count($this->proxies));
-            dump('need count' . $count . '.Get new proxies' . count($this->proxies));
         }
 
         return $this->proxies;

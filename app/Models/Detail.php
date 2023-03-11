@@ -16,10 +16,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $short_description
  * @property string $interchange_numbers
  * @property int $price
- * @property int|null $new_price
- * @property int|null $shipping_price
- * @property int|null $total_price
- * @property int|null $coefficient
+ * @property int $us_shipping_price
+ * @property int $ua_shipping_price
+ * @property int $price_markup
  * @property int $stock
  * @property int $category_id
  * @property int $currency_id
@@ -53,6 +52,8 @@ class Detail extends Model
 {
     use HasFactory;
 
+    protected $appends = ['total_price_usd', 'total_price_uah'];
+
     protected $fillable = [
         'title',
         'slug',
@@ -60,10 +61,9 @@ class Detail extends Model
         'short_description',
         'interchange_numbers',
         'price',
-        'new_price',
-        'shipping_price',
-        'total_price',
-        'coefficient',
+        'us_shipping_price',
+        'ua_shipping_price',
+        'price_markup',
         'category_id',
         'currency_id',
         'partkey',
@@ -71,11 +71,23 @@ class Detail extends Model
 
     public function category()
     {
-        return $this->belongsTo(Category::class, );
+        return $this->belongsTo(Category::class,);
     }
 
     public function detail_analogues()
     {
-        return $this->hasMany(DetailAnalogue::class, );
+        return $this->hasMany(DetailAnalogue::class,);
+    }
+
+    public function getTotalPriceUsdAttribute()
+    {
+        return $this->price + $this->us_shipping_price + $this->ua_shipping_price + $this->price_markup;
+    }
+
+    public function getTotalPriceUahAttribute()
+    {
+        $cf = optional(Currency::where('code', Currency::UAH_CODE)->first())->rate;
+
+        return $this->total_price_usd * $cf;
     }
 }

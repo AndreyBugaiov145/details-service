@@ -38,17 +38,61 @@ use function App\Services\convert;
 |
 */
 
+
+
+Route::get('/', function () {
+    return view('home');
+});
+
+Route::prefix('login')->group(function () {
+    Route::get('/', function () {
+        return view('auth.sign-in');
+    });
+    Route::post('/', [Users::class, 'login'])->name('login');
+});
+
+Route::prefix('admin')->group(function () {
+    Route::get('/', function () {
+        return view('admin.home');
+    })->middleware('auth')->name('admin');
+
+    Route::get('/reset-password', function () {
+        return view('admin.reset-password');
+    })->middleware('auth')->name('reset-password-page');
+
+    Route::post('/reset-password', [Users::class, 'changePassword'])->middleware('auth')->name('reset-password');
+
+    Route::get('/parser-setting', function () {
+        return view('admin.parser-setting');
+    })->middleware('auth')->name('parser-setting');
+    Route::resource('/settings', ParsingSettingController::class)->except(['show', 'edit', 'create'])->middleware('auth');
+    Route::get('/settings/{id}/update_category_parsing_status', [ParsingSettingController::class, 'updateCategoryParsingStatus'])->middleware('auth');
+    Route::get('/settings/{id}/update_detail_parsing_status', [ParsingSettingController::class, 'updateDetailParsingStatus'])->middleware('auth');
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
 Route::get('/job', function () {
 
-   $Category = Category::first();
+    $Category = Category::first();
     var_dump($Category->jsn);
     dd($Category->jsn);
-   $parsingSetting = ParsingSetting::first();
+    $parsingSetting = ParsingSetting::first();
 //    GrabbingDetails::dispatch($parsingSetting);
-   $job = new GrabbingDetails($parsingSetting);
-   dispatch($job);
+    $job = new GrabbingDetails($parsingSetting);
+    dispatch($job);
 //   dispatch($job);
-   dd(1);
+    dd(1);
 
 });
 
@@ -490,35 +534,3 @@ Route::get('/test', function () {
 
     return 1;
 });
-
-
-Route::get('/', function () {
-    return view('home');
-});
-
-Route::prefix('login')->group(function () {
-    Route::get('/', function () {
-        return view('auth.sign-in');
-    });
-    Route::post('/', [Users::class, 'login'])->name('login');
-});
-
-Route::prefix('admin')->group(function () {
-    Route::get('/', function () {
-        return view('admin.home');
-    })->middleware('auth')->name('admin');
-
-    Route::get('/reset-password', function () {
-        return view('admin.reset-password');
-    })->middleware('auth')->name('reset-password-page');
-
-    Route::post('/reset-password', [Users::class, 'changePassword'])->middleware('auth')->name('reset-password');
-
-    Route::get('/parser-setting', function () {
-        return view('admin.parser-setting');
-    })->middleware('auth')->name('parser-setting');
-    Route::resource('/settings', ParsingSettingController::class)->except(['show', 'edit', 'create'])->middleware('auth');
-    Route::get('/settings/{id}/update_category_parsing_status', [ParsingSettingController::class, 'updateCategoryParsingStatus'])->middleware('auth');
-    Route::get('/settings/{id}/update_detail_parsing_status', [ParsingSettingController::class, 'updateDetailParsingStatus'])->middleware('auth');
-});
-

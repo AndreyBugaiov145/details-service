@@ -19,11 +19,10 @@ class CreateDetailsTable extends Migration
             $table->string('s_number');
             $table->text('short_description')->nullable();
             $table->text('interchange_numbers')->nullable();
-            $table->float('price');
-            $table->float('new_price')->nullable();
-            $table->float('shipping_price')->nullable();
-            $table->float('total_price')->nullable();
-            $table->float('coefficient')->nullable();
+            $table->float('price')->default(0);
+            $table->float('us_shipping_price')->default(1);
+            $table->float('ua_shipping_price')->default(0);
+            $table->float('price_markup')->default(0);
             $table->integer('stock')->default(0);
             $table->integer('partkey')->nullable();
             $table->unsignedBigInteger('category_id')->unsigned();

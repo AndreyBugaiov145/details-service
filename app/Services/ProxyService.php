@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use GuzzleHttp\Promise;
+use Log;
 
 class ProxyService
 {
@@ -138,7 +139,7 @@ class ProxyService
         $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        dump('getProxies');
+        Log::info('getProxies');
         return array_unique(array_merge($proxiesArr1, $proxiesArr2));
     }
 

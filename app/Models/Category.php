@@ -75,4 +75,8 @@ class Category extends Model
         }]);
     }
 
+//    public function getJsnAttribute($attribute){
+//        return json_decode(json_decode($attribute)) ;
+//    }
+
 }

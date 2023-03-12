@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateGrabberStatisticsTable extends Migration
+class CreateGrabberStatisticTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateGrabberStatisticsTable extends Migration
      */
     public function up()
     {
-        Schema::create('grabber_statistics', function (Blueprint $table) {
+        Schema::create('grabber_statistic', function (Blueprint $table) {
             $table->id();
             $table->integer('parsing_setting_id');
             $table->string('parsing_status');
             $table->integer('request_count');
-            $table->timestamp('request_time');
+            $table->integer('request_time');
             $table->string('parsing_type');
             $table->timestamps();
         });
@@ -31,6 +31,6 @@ class CreateGrabberStatisticsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('grabber_statistics');
+        Schema::dropIfExists('grabber_statistic');
     }
 }

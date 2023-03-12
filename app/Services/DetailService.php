@@ -8,6 +8,8 @@ use App\Models\Currency;
 use App\Models\Detail;
 use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
+use App\Models\ParsingStatistic;
+use App\Utils\MemoryUtils;
 use Arr;
 use ArrayObject;
 use Carbon\Carbon;
@@ -35,6 +37,7 @@ class DetailService
 
     public function fetchCategoriesAndDetailsInfo()
     {
+        $start = microtime(true);
         Log::info('Start fetching');
         try {
             $this->attempts = 0;
@@ -81,6 +84,18 @@ class DetailService
             Log::critical($e->getMessage(), $e->getTrace());
         } finally {
             $this->parsingSetting->save();
+
+            MemoryUtils::loggingUsedMemory();
+            $time = round(microtime(true) - $start, 4);
+            Log::debug('Время выполнения скрипта: ' . $time . ' сек.');
+
+            ParsingStatistic::create([
+                'parsing_setting_id' => $this->parsingSetting->id,
+                'parsing_status' => $this->parsingSetting->category_parsing_status,
+                'request_count' => $this->request_count,
+                'request_time' => $time,
+                'parsing_type' => ParsingStatistic::PARSING_CATEGORY
+            ]);
         }
 
         Log::info('fetching finish');
@@ -88,6 +103,7 @@ class DetailService
 
     public function fetchDetailsInfo($categoriesData)
     {
+        $start = microtime(true);
         Log::info('Start fetching Details Only');
         try {
             $this->fetchChildCategories($categoriesData);
@@ -98,7 +114,6 @@ class DetailService
             if ($result) {
                 $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
                 $this->parsingSetting->detail_parsing_at = Carbon::now();
-                $this->parsingSetting->save();
 
                 $details = $this->getDetails($this->detailsData);
                 $analogyDetailsData = $this->fetchAnalogyDetails($details);
@@ -111,9 +126,22 @@ class DetailService
         } catch (\Exception $e) {
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_at = Carbon::now();
-            $this->parsingSetting->save();
 
             Log::critical($e->getMessage(), $e->getTrace());
+        } finally {
+            $this->parsingSetting->save();
+
+            MemoryUtils::loggingUsedMemory();
+            $time = round(microtime(true) - $start, 4);
+            Log::debug('Время выполнения скрипта: ' . $time . ' сек.');
+
+            ParsingStatistic::create([
+                'parsing_setting_id' => $this->parsingSetting->id,
+                'parsing_status' => $this->parsingSetting->detail_parsing_status,
+                'request_count' => $this->request_count,
+                'request_time' => $time,
+                'parsing_type' => ParsingStatistic::PARSING_DETAIL
+            ]);
         }
 
         Log::info('fetching finish');
@@ -361,8 +389,8 @@ class DetailService
         $result = $this->fetchRequestCategories($data);
 
         if ($this->attempts > $this->max_attempts) {
-            throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
             Log::critical('Faeil max_attempts', $data);
+            throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
         }
 
         do {
@@ -373,7 +401,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+            Log::info(' fetching child progress ' . 100 * count($result['success']) / count($data));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -429,7 +457,7 @@ class DetailService
 
     protected function saveDetails(array $detailsData)
     {
-        Log::info('Saving details',$detailsData);
+        Log::info('Saving details', $detailsData);
         $result = Detail::upsert($detailsData, ['title', 'category_id'], [
             'price',
             'short_description',

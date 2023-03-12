@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Detail;
 use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
+use App\Models\ParsingStatistic;
 use App\Services\CategoryService;
 use App\Services\CurrencyService;
 use App\Services\FetchingService;
@@ -85,6 +86,14 @@ Route::prefix('admin')->group(function () {
 
 Route::get('/job', function () {
 
+    ParsingStatistic::create([
+        'parsing_setting_id' => 1,
+        'parsing_status' => 'asdasd',
+        'request_count' => 25,
+        'request_time' => 25,
+        'parsing_type' => 'ParsingStatistic::PARSING_CATEGORY'
+    ]);
+dd(1);
    $CurrencyService =  new CurrencyService();
     $CurrencyService->updateUAHRate();
 dd(1);

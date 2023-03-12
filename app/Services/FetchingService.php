@@ -114,10 +114,9 @@ class FetchingService
 
         $chunks = array_chunk($data, $this->chunkCount);
         $result = [];
-
         foreach ($chunks as $chunk) {
             $promises = [];
-            foreach ($chunk as $item) {
+            foreach ($chunk as $i => $item) {
                 $proxy = Arr::random($this->getProxies(count($chunk)));
                 $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
                 $key = $uid . '|' . $proxy;
@@ -138,6 +137,7 @@ class FetchingService
                 }
             }
             $this->proxyService->incrementFailedProxy($failedProxy);
+            \Log::info('Request sending progress ' . 100 * count($chunk) * ($i + 1) / count($data));
         }
 
         return $result;

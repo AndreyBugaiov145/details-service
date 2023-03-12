@@ -12,6 +12,7 @@ use App\Models\ParsingStatistic;
 use App\Services\CategoryService;
 use App\Services\CurrencyService;
 use App\Services\FetchingService;
+use App\Services\JobsService;
 use App\Services\ParserService;
 use App\Services\ProxyScrape;
 use App\Services\ProxyService;
@@ -85,14 +86,15 @@ Route::prefix('admin')->group(function () {
 
 
 Route::get('/job', function () {
+//    $categories = Category::get();
+//        $category = $categories->first(function ($category)   {
+//            return $category->title == 'AC' && $category->parent_id == null;
+//        });
+//        dd($category);
 
-    ParsingStatistic::create([
-        'parsing_setting_id' => 1,
-        'parsing_status' => 'asdasd',
-        'request_count' => 25,
-        'request_time' => 25,
-        'parsing_type' => 'ParsingStatistic::PARSING_CATEGORY'
-    ]);
+    $JobsService = new JobsService();
+    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
+
 dd(1);
    $CurrencyService =  new CurrencyService();
     $CurrencyService->updateUAHRate();

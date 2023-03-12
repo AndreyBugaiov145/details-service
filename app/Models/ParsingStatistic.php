@@ -20,5 +20,6 @@ class ParsingStatistic extends Model
         'request_count',
         'request_time',
         'parsing_type',
+        'used_memory',
     ];
 }

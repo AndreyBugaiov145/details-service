@@ -40,7 +40,7 @@ class ScrapeDetailsInfo extends Command
     public function handle()
     {
         $JobsService = new JobsService();
-        $JobsService->cre();
+        $JobsService->addGrabbingAllDetailsJobs();
 
         return 0;
     }

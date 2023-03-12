@@ -1,30 +1,19 @@
 <?php
 
-use App\Exceptions\GrabberException;
+use App\Http\Controllers\Categories;
+use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettingController;
 use App\Http\Controllers\Users;
-use App\Jobs\GrabbingDetails;
 use App\Models\Category;
-use App\Models\Detail;
-use App\Models\DetailAnalogue;
-use App\Models\ParsingSetting;
-use App\Models\ParsingStatistic;
-use App\Services\CategoryService;
 use App\Services\CurrencyService;
-use App\Services\FetchingService;
+use App\Services\GrabberService;
 use App\Services\JobsService;
 use App\Services\ParserService;
 use App\Services\ProxyScrape;
 use App\Services\ProxyService;
-use App\Services\GrabberService;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\RequestOptions;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Route;
-use PHPHtmlParser\Dom;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Promise;
+use GuzzleHttp\Psr7\Request;
+use Illuminate\Support\Facades\Route;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -42,7 +31,6 @@ use function App\Services\convert;
 */
 
 
-
 Route::get('/', function () {
     return view('home');
 });
@@ -53,6 +41,35 @@ Route::prefix('login')->group(function () {
     });
     Route::post('/', [Users::class, 'login'])->name('login');
 });
+
+Route::prefix('api')->group(function () {
+    Route::prefix('user')->group(function () {
+        Route::get('me', [Users::class, 'getMe'])->name('me');
+    });
+
+    Route::prefix('category')->group(function () {
+        Route::get('/get-main', [Categories::class, 'getMainCategories']);
+//        Route::get('/get-main_year', [Categories::class, 'getChildMainYarCategories']);
+//        Route::get('/get-main_models', [Categories::class, 'getChildMainModelCategories']);
+        Route::get('/children/{id}', [Categories::class, 'getChildrenCategories']);
+        Route::get('/{id}', [Categories::class, 'getCategory']);
+    });
+
+    Route::prefix('detail')->group(function () {
+        Route::get('/category-details/{category_id}', [Details::class, 'getCategoryDetails']);
+        Route::get('/{id}/analogy-details', [Details::class, 'getAnalogyDetails']);
+        Route::get('/{id}', [Details::class, 'getDetail']);
+        Route::post('/', [Details::class, 'create']);
+        Route::put('/{id}', [Details::class, 'update']);
+        Route::delete('/{id}', [Details::class, 'delete']);
+    });
+
+//    Route::prefix('analogy-detail')->group(function () {
+//        Route::get('me', [Users::class, 'getMe'])->name('me');
+//    });
+
+});
+
 
 Route::prefix('admin')->group(function () {
     Route::get('/', function () {
@@ -74,31 +91,24 @@ Route::prefix('admin')->group(function () {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
 Route::get('/job', function () {
 //    $categories = Category::get();
 //        $category = $categories->first(function ($category)   {
 //            return $category->title == 'AC' && $category->parent_id == null;
 //        });
 //        dd($category);
-
+//    $rez = Category::upsert([
+//        ['title' => 'AC',  'jsn' => '[asdasd]']
+//    ], ['title', 'parent_id'], ['jsn']);
+//    Log::debug('ASDASD');
+//    dd($rez);
     $JobsService = new JobsService();
     $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
 
-dd(1);
-   $CurrencyService =  new CurrencyService();
+    dd(1);
+    $CurrencyService = new CurrencyService();
     $CurrencyService->updateUAHRate();
-dd(1);
+    dd(1);
     $client = new \GuzzleHttp\Client();
     $rq1 = $client->get(
         'https://api.apilayer.com/fixer/latest?base=USD&symbols=UAH',
@@ -110,7 +120,7 @@ dd(1);
             ],
         ]);
 
-    $rez = (string) $rq1->getBody();
+    $rez = (string)$rq1->getBody();
     dd($rez);
 });
 

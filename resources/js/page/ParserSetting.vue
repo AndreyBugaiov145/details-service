@@ -133,6 +133,7 @@ export default {
                 await this.loadParserSettings()
             } else {
                 let response = await axios.put(`/admin/settings/${this.editableId}`, this.setting)
+                alert(response.data.message)
             }
             this.setEditableNull()
         }

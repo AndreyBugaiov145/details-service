@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ParsingSetting;
+use App\Repositories\CategoryRepository;
 
 class GrabberService
 {
@@ -33,7 +34,7 @@ class GrabberService
             'detail_parsing_status' => ParsingSetting::STATUS_IN_PROGRESS,
         ]);
 
-        $categories = CategoryService::getLastChildrenCategories($parsingSetting->brand);
+        $categories = CategoryRepository::getLastChildrenCategories($parsingSetting->brand);
 
         $detailService = new DetailService($parsingSetting);
         $detailService->fetchDetailsInfo([$categories]);

@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Example from './components/Example.vue'
+import Example from './components/CategoryComponent.vue'
 import {BootstrapVue, BootstrapVueIcons} from 'bootstrap-vue'
 
 import 'bootstrap/dist/css/bootstrap.css'

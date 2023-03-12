@@ -444,7 +444,7 @@ class DetailService
 
     protected function saveCategory(&$data)
     {
-        $parentIds = [];
+        $parentIds = [0];
         $categoryData = [];
         foreach ($data as $key => $item) {
             $category = ['title' => $item['title']];
@@ -468,10 +468,10 @@ class DetailService
             Category::upsert($chunk, ['title', 'parent_id'], ['jsn']);
         }
 
-        $categories = Category::whereIn('parent_id', $parentIds)->orWhereNull('parent_id')->get();
+        $categories = Category::whereIn('parent_id', $parentIds)->get();
         foreach ($data as $key => $item) {
             $category = $categories->first(function ($category) use ($item) {
-                $parent_id = isset($item['parent_id']) ? $item['parent_id'] : null;
+                $parent_id = isset($item['parent_id']) ? $item['parent_id'] : 0;
                 return $category->title == $item['title'] && $category->parent_id == $parent_id;
             });
             if (is_null($category)) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ApiResponseServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -44,5 +45,12 @@ class Users extends Controller
         return back()->withErrors([
             'success' => 'Пароль змінений'
         ]);
+    }
+
+    public function getMe()
+    {
+        $authUser = Auth::user();
+
+        return ApiResponseServices::successCustomData(optional($authUser)->toArray());
     }
 }

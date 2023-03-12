@@ -27,7 +27,7 @@ class CreateDetailsTable extends Migration
             $table->integer('partkey')->nullable();
             $table->unsignedBigInteger('category_id')->unsigned();
             $table->unsignedBigInteger('currency_id')->unsigned();
-            $table->unique('title','category_id');
+            $table->unique(['title','category_id']);
             $table->boolean('is_parsing_analogy_details')->default(false);
             $table->timestamps();
         });

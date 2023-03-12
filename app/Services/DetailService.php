@@ -217,7 +217,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+            Log::info(' fetching Main Years rejected count' . count($result['rejected']));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -262,7 +262,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+            Log::info(' fetching Car Models categories rejected count' . count($result['rejected']));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {

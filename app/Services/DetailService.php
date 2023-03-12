@@ -23,7 +23,7 @@ class DetailService
     protected $currency_id;
     protected $parsingSetting;
     protected $attempts = 0;
-    protected $max_attempts = 25;
+    protected $max_attempts = 70;
     protected $i = 0;
     public $request_count = 0;
     public $detailsData = [];
@@ -42,17 +42,16 @@ class DetailService
         try {
             $this->attempts = 0;
             $mainCategoriesData = $this->fetchMainCategories();
-            Log::info('fetched mainCategoriesData', $mainCategoriesData);
+            Log::info('fetched mainCategoriesData', $mainCategoriesData[0]);
 
             $this->attempts = 0;
             $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
             $this->request_count++;
-            Log::info('fetched mainYearsCategoriesData', $mainYearsCategoriesData
-            );
+            Log::info('fetched mainYearsCategoriesData', $mainYearsCategoriesData[0]);
             $this->attempts = 0;
             $carModelsCategoriesData = $this->fetchCarModels($mainYearsCategoriesData);
             $this->request_count++;
-            Log::info('fetched carModelsCategoriesData', $carModelsCategoriesData);
+            Log::info('fetched carModelsCategoriesData', $carModelsCategoriesData[0]);
 
             $this->fetchChildCategories($carModelsCategoriesData);
             $this->attempts = 0;
@@ -433,7 +432,7 @@ class DetailService
 
         }
 
-        Log::info('finish fetching child categories', $newAllCategoriesData);
+        Log::info('finish fetching child categories', $newAllCategoriesData[0]);
         if (count($newAllCategoriesData) > 0) {
             $this->fetchChildCategories($newAllCategoriesData);
         }
@@ -458,13 +457,18 @@ class DetailService
     protected function saveDetails(array $detailsData)
     {
         Log::info('Saving details', $detailsData);
-        $result = Detail::upsert($detailsData, ['title', 'category_id'], [
-            'price',
-            'short_description',
-            's_number',
-            'price',
-            'partkey'
-        ]);
+        $chunks = array_chunk($detailsData, 1000);
+
+        foreach ($chunks as $chunk) {
+            $result = Detail::upsert($chunk, ['title', 'category_id'], [
+                'price',
+                'short_description',
+                's_number',
+                'price',
+                'partkey'
+            ]);
+        }
+
         if ($result) {
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
             $this->parsingSetting->detail_parsing_at = Carbon::now();
@@ -553,6 +557,11 @@ class DetailService
 
     private function saveAnalogyDetails(array $analogyDetailsData)
     {
-        return DetailAnalogue::upsert($analogyDetailsData, []);
+        $chunks = array_chunk($analogyDetailsData, 1000);
+        foreach ($chunks as $chunk) {
+            DetailAnalogue::upsert($chunk, []);
+        }
+
+        return true;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\DetailService;
+use App\Services\JobsService;
 use Illuminate\Console\Command;
 
 class ScrapeDetailsInfo extends Command
@@ -38,8 +39,8 @@ class ScrapeDetailsInfo extends Command
      */
     public function handle()
     {
-        $detailService = new DetailService();
-        $detailService->fetchDetailsInfo();
+        $JobsService = new JobsService();
+        $JobsService->cre();
 
         return 0;
     }

@@ -10,6 +10,11 @@ class JobsService
 {
     public function addGrabbingAllCategoriesAndDetailsJobs()
     {
+        ParsingSetting::whereNotNull('brand')->update([
+            'detail_parsing_status' => ParsingSetting::STATUS_PENDING,
+            'category_parsing_status' => ParsingSetting::STATUS_PENDING
+        ]);
+
         $parsingSetting = ParsingSetting::get();
         foreach ($parsingSetting as $setting) {
             $job = new GrabbingCategoriesAndDetails($setting);
@@ -19,6 +24,8 @@ class JobsService
 
     public function addGrabbingAllDetailsJobs()
     {
+        ParsingSetting::whereNotNull('brand')->update(['detail_parsing_status' => ParsingSetting::STATUS_PENDING]);
+
         $parsingSetting = ParsingSetting::get();
         foreach ($parsingSetting as $setting) {
             $job = new GrabbingDetails($setting);
@@ -26,20 +33,20 @@ class JobsService
         }
     }
 
-    public function addGrabbingPendingCategoriesAndDetailsJobs(ParsingSetting $parsingSetting)
+    protected function addGrabbingPendingCategoriesAndDetailsJobs(ParsingSetting $parsingSetting)
     {
         $job = new GrabbingCategoriesAndDetails($parsingSetting);
         dispatch($job);
 
     }
 
-    public function addGrabbingPendingDetailsJobs(ParsingSetting $parsingSetting)
+    protected function addGrabbingPendingDetailsJobs(ParsingSetting $parsingSetting)
     {
         $job = new GrabbingDetails($parsingSetting);
         dispatch($job);
     }
 
-    public function createPendingCategoriesOrDetails()
+    public function createPendingCategoriesOrDetailsJobs()
     {
         $parsingSettings = ParsingSetting::where([
             ['category_parsing_status', '=', ParsingSetting::STATUS_PENDING, 'or'],

@@ -19,7 +19,7 @@ class GrabbingCategoriesAndDetails implements ShouldQueue
 
     public $tries = 2;
 
-    public $timeout = 9000;
+    public $timeout = 17000;
 
     public $parserSetting;
 

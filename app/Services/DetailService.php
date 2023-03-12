@@ -8,6 +8,9 @@ use App\Models\Currency;
 use App\Models\Detail;
 use App\Models\DetailAnalogue;
 use App\Models\ParsingSetting;
+use App\Models\ParsingStatistic;
+use App\Utils\ArrayUtils;
+use App\Utils\MemoryUtils;
 use Arr;
 use ArrayObject;
 use Carbon\Carbon;
@@ -21,7 +24,7 @@ class DetailService
     protected $currency_id;
     protected $parsingSetting;
     protected $attempts = 0;
-    protected $max_attempts = 25;
+    protected $max_attempts = 70;
     protected $i = 0;
     public $request_count = 0;
     public $detailsData = [];
@@ -35,21 +38,21 @@ class DetailService
 
     public function fetchCategoriesAndDetailsInfo()
     {
+        $start = microtime(true);
         Log::info('Start fetching');
         try {
             $this->attempts = 0;
             $mainCategoriesData = $this->fetchMainCategories();
-            Log::info('fetched mainCategoriesData', $mainCategoriesData);
+            Log::info('fetched mainCategoriesData', ArrayUtils::getFirstItem($mainCategoriesData));
 
             $this->attempts = 0;
             $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
             $this->request_count++;
-            Log::info('fetched mainYearsCategoriesData', $mainYearsCategoriesData
-            );
+            Log::info('fetched mainYearsCategoriesData', ArrayUtils::getFirstItem($mainYearsCategoriesData));
             $this->attempts = 0;
             $carModelsCategoriesData = $this->fetchCarModels($mainYearsCategoriesData);
             $this->request_count++;
-            Log::info('fetched carModelsCategoriesData', $carModelsCategoriesData);
+            Log::info('fetched carModelsCategoriesData', ArrayUtils::getFirstItem($carModelsCategoriesData));
 
             $this->fetchChildCategories($carModelsCategoriesData);
             $this->attempts = 0;
@@ -81,6 +84,19 @@ class DetailService
             Log::critical($e->getMessage(), $e->getTrace());
         } finally {
             $this->parsingSetting->save();
+
+            MemoryUtils::loggingUsedMemory();
+            $time = round(microtime(true) - $start, 4);
+            Log::debug('Время выполнения скрипта: ' . $time . ' сек.');
+
+            ParsingStatistic::create([
+                'parsing_setting_id' => $this->parsingSetting->id,
+                'parsing_status' => $this->parsingSetting->category_parsing_status,
+                'request_count' => $this->request_count,
+                'request_time' => $time,
+                'parsing_type' => ParsingStatistic::PARSING_CATEGORY,
+                'used_memory' => MemoryUtils::getUsedMemory()
+            ]);
         }
 
         Log::info('fetching finish');
@@ -88,6 +104,7 @@ class DetailService
 
     public function fetchDetailsInfo($categoriesData)
     {
+        $start = microtime(true);
         Log::info('Start fetching Details Only');
         try {
             $this->fetchChildCategories($categoriesData);
@@ -98,7 +115,6 @@ class DetailService
             if ($result) {
                 $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
                 $this->parsingSetting->detail_parsing_at = Carbon::now();
-                $this->parsingSetting->save();
 
                 $details = $this->getDetails($this->detailsData);
                 $analogyDetailsData = $this->fetchAnalogyDetails($details);
@@ -111,9 +127,22 @@ class DetailService
         } catch (\Exception $e) {
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_at = Carbon::now();
-            $this->parsingSetting->save();
 
             Log::critical($e->getMessage(), $e->getTrace());
+        } finally {
+            $this->parsingSetting->save();
+
+            MemoryUtils::loggingUsedMemory();
+            $time = round(microtime(true) - $start, 4);
+            Log::debug('Время выполнения скрипта: ' . $time . ' сек.');
+
+            ParsingStatistic::create([
+                'parsing_setting_id' => $this->parsingSetting->id,
+                'parsing_status' => $this->parsingSetting->detail_parsing_status,
+                'request_count' => $this->request_count,
+                'request_time' => $time,
+                'parsing_type' => ParsingStatistic::PARSING_DETAIL
+            ]);
         }
 
         Log::info('fetching finish');
@@ -188,7 +217,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+            Log::info(' fetching Main Years rejected count' . count($result['rejected']));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -233,7 +262,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+            Log::info(' fetching Car Models categories rejected count' . count($result['rejected']));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -312,7 +341,7 @@ class DetailService
     {
         $data = json_decode((string)$stream->getBody(), true);
         if (isset($data['html_fill_sections']) && is_array($data['html_fill_sections'])) {
-            return reset($data['html_fill_sections']);
+            return ArrayUtils::getFirstItem($data['html_fill_sections']);
         }
 
         return '';
@@ -322,7 +351,7 @@ class DetailService
     {
         $data = json_decode((string)$stream->getBody(), true);
         if (isset($data['buyersguidepieces']) && is_array($data['buyersguidepieces'])) {
-            return reset($data['buyersguidepieces']);
+            return ArrayUtils::getFirstItem($data['buyersguidepieces']);
         }
 
         return '';
@@ -361,8 +390,8 @@ class DetailService
         $result = $this->fetchRequestCategories($data);
 
         if ($this->attempts > $this->max_attempts) {
-            throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
             Log::critical('Faeil max_attempts', $data);
+            throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
         }
 
         do {
@@ -373,7 +402,9 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+
+            $all_count = count($data) ?: 1;
+            Log::info(' fetching child progress ' . 100 * count($result['success']) / $all_count);
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -404,45 +435,76 @@ class DetailService
             }
 
         }
-
-        Log::info('finish fetching child categories', $newAllCategoriesData);
+        Log::info('finish fetching child categories');
         if (count($newAllCategoriesData) > 0) {
+
             $this->fetchChildCategories($newAllCategoriesData);
         }
     }
 
     protected function saveCategory(&$data)
     {
+        $parentIds = [];
+        $categoryData = [];
         foreach ($data as $key => $item) {
-            $categoryData = ['title' => $item['title']];
+            $category = ['title' => $item['title']];
             if (isset($item['parent_id'])) {
-                $categoryData['parent_id'] = $item['parent_id'];
+                $category['parent_id'] = $item['parent_id'];
+                $parentIds[] = $item['parent_id'];
             }
+
             if (isset($item['jsn'])) {
-                $categoryData['jsn'] = $item['jsn'];
-//                $categoryData['jsn'] = json_encode($item['jsn']);
+//                $categoryData['jsn'] = $item['jsn'];
+                $category['jsn'] = json_encode($item['jsn']);
             }
-            $category = Category::firstOrCreate($categoryData);
+
+            $categoryData[] = $category;
+        }
+        $parentIds = array_unique($parentIds);
+
+        $chunks = array_chunk($categoryData, 1000);
+
+        foreach ($chunks as $chunk) {
+            Category::upsert($chunk, ['title', 'parent_id'], ['jsn']);
+        }
+
+        $categories = Category::whereIn('parent_id', $parentIds)->orWhereNull('parent_id')->get();
+        foreach ($data as $key => $item) {
+            $category = $categories->first(function ($category) use ($item) {
+                $parent_id = isset($item['parent_id']) ? $item['parent_id'] : null;
+                return $category->title == $item['title'] && $category->parent_id == $parent_id;
+            });
+            if (is_null($category)) {
+                throw new GrabberException('parent category not found' . json_encode($item));
+            }
+
             $data[$key]['id'] = $category->id;
         }
+//
+//        $category = Category::firstOrCreate($categoryData);
+//        $data[$key]['id'] = $category->id;
     }
 
     protected function saveDetails(array $detailsData)
     {
-        Log::info('Saving details',$detailsData);
-        $result = Detail::upsert($detailsData, ['title', 'category_id'], [
-            'price',
-            'short_description',
-            's_number',
-            'price',
-            'partkey'
-        ]);
-        if ($result) {
-            $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
-            $this->parsingSetting->detail_parsing_at = Carbon::now();
-            $this->parsingSetting->save();
+        Log::info('Saving details', $detailsData);
+        $chunks = array_chunk($detailsData, 1000);
+
+        foreach ($chunks as $chunk) {
+            Detail::upsert($chunk, ['title', 'category_id'], [
+                'price',
+                'short_description',
+                's_number',
+                'price',
+                'partkey'
+            ]);
         }
-        return $result;
+
+        $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
+        $this->parsingSetting->detail_parsing_at = Carbon::now();
+        $this->parsingSetting->save();
+
+        return true;
     }
 
     protected function getDetails($detailsData)
@@ -478,7 +540,8 @@ class DetailService
             $rez = $this->fetchRequestAnalogyDetails($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching child categories rejected count' . count($result['rejected']));
+            $all_count = count($details) ?: 1;
+            Log::info(' fetching  Analogy Details progress = ' . 100 * count($result['success']) / $all_count);
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -525,6 +588,11 @@ class DetailService
 
     private function saveAnalogyDetails(array $analogyDetailsData)
     {
-        return DetailAnalogue::upsert($analogyDetailsData, []);
+        $chunks = array_chunk($analogyDetailsData, 1000);
+        foreach ($chunks as $chunk) {
+            DetailAnalogue::upsert($chunk, []);
+        }
+
+        return true;
     }
 }

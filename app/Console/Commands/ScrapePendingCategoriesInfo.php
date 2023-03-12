@@ -40,7 +40,7 @@ class ScrapePendingCategoriesInfo extends Command
     public function handle()
     {
         $JobsService = new JobsService();
-        $JobsService->createPendingCategoriesOrDetails();
+        $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
 
         return 0;
     }

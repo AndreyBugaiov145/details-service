@@ -14,7 +14,7 @@ class FetchingService
     protected $connect_timeout = 10;
     protected $proxies = [];
     protected $proxyService;
-    protected $chunkCount = 400;
+    protected $chunkCount = 500;
 
     public function __construct()
     {
@@ -114,8 +114,7 @@ class FetchingService
 
         $chunks = array_chunk($data, $this->chunkCount);
         $result = [];
-
-        foreach ($chunks as $chunk) {
+        foreach ($chunks as $i => $chunk) {
             $promises = [];
             foreach ($chunk as $item) {
                 $proxy = Arr::random($this->getProxies(count($chunk)));
@@ -138,6 +137,7 @@ class FetchingService
                 }
             }
             $this->proxyService->incrementFailedProxy($failedProxy);
+            \Log::info('Request sending progress ' . 100 * ($i + 1) / count($chunks));
         }
 
         return $result;
@@ -161,7 +161,7 @@ class FetchingService
         $chunks = array_chunk($data, $this->chunkCount);
         $result = [];
 
-        foreach ($chunks as $chunk) {
+        foreach ($chunks as $i => $chunk) {
             $promises = [];
             foreach ($chunk as $item) {
 
@@ -185,6 +185,7 @@ class FetchingService
                 }
             }
             $this->proxyService->incrementFailedProxy($failedProxy);
+            \Log::info('Request sending progress ' . 100 * ($i + 1) / count($chunks));
         }
 
         return $result;

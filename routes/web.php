@@ -49,8 +49,6 @@ Route::prefix('api')->group(function () {
 
     Route::prefix('category')->group(function () {
         Route::get('/get-main', [Categories::class, 'getMainCategories']);
-//        Route::get('/get-main_year', [Categories::class, 'getChildMainYarCategories']);
-//        Route::get('/get-main_models', [Categories::class, 'getChildMainModelCategories']);
         Route::get('/children/{id}', [Categories::class, 'getChildrenCategories']);
         Route::get('/{id}', [Categories::class, 'getCategory']);
     });

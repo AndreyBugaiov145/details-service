@@ -52,7 +52,7 @@ class Detail extends Model
 {
     use HasFactory;
 
-    protected $appends = ['total_price_usd', 'total_price_uah'];
+    protected $appends = ['total_price_usd', 'total_price_uah','isDisabled'];
 
     protected $fillable = [
         'title',
@@ -67,6 +67,7 @@ class Detail extends Model
         'category_id',
         'currency_id',
         'partkey',
+        'is_manual_added',
     ];
 
     public function category()
@@ -81,8 +82,14 @@ class Detail extends Model
 
     public function getTotalPriceUsdAttribute()
     {
-        return $this->price + $this->us_shipping_price + $this->ua_shipping_price + $this->price_markup;
+        return round( $this->price + $this->us_shipping_price + $this->ua_shipping_price + $this->price_markup,0);
     }
+
+    public function getIsDisabledAttribute() :bool
+    {
+        return $this->price  == 0;
+    }
+
 
     public function getTotalPriceUahAttribute()
     {

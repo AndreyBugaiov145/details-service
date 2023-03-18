@@ -1,9 +1,12 @@
 <template>
-    <div class="container">
-        <CategoryComponent
-            v-for="category in categories" :key="category.id"
-            :category="category"
-        />
+    <div class="container categories-block pt-3">
+        <div class="cat-bg-block">
+            <CategoryComponent
+                v-for="category in categories" :key="category.id"
+                :category="category"
+                :authUser="authUser"
+            />
+        </div>
     </div>
 </template>
 
@@ -14,7 +17,8 @@ import axios from 'axios'
 export default {
     data() {
         return {
-            categories : [],
+            categories: [],
+            authUser: false
         }
     },
     methods: {
@@ -26,9 +30,20 @@ export default {
                 alert('Something went wrong try again later.')
             }
         },
+
+        async loadAuthUser() {
+            let response = await axios.get('/api/user/me')
+            if (response.status) {
+                this.authUser = response.data.data
+            } else {
+                alert('Something went wrong try again later.')
+            }
+        },
+
     },
     async mounted() {
         await this.loadMainCategories()
+        await this.loadAuthUser()
     }
 }
 </script>

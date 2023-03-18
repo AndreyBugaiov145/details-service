@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div class="container parser-setting-container">
         <br>
         <h3>Якщо моделі машин не задано будуть взяті всі моделі цього бренду</h3>
         <button type="button" class="btn btn-success mb-5" @click="showModal">Add new</button>

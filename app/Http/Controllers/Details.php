@@ -7,7 +7,6 @@ use App\Models\Currency;
 use App\Models\Detail;
 use App\Models\DetailAnalogue;
 use App\Services\ApiResponseServices;
-use Illuminate\Http\Request;
 
 class Details extends Controller
 {
@@ -30,8 +29,8 @@ class Details extends Controller
     public function create(DetailRequest $request)
     {
         try {
-            $currency = Currency::where('code', Currency::UAH_CODE);
-            $data = array_merge($request->all(), ['currency_id' => $currency->id, 'is_parsing_analogy_details' => true]);
+            $currency = Currency::where('code', Currency::UAH_CODE)->first();
+            $data = array_merge($request->all(), ['currency_id' => $currency->id, 'is_parsing_analogy_details' => true, 'is_manual_added' => true]);
             $detail = Detail::create($data);
 
             if ($request->has('analogy_details')) {
@@ -41,6 +40,8 @@ class Details extends Controller
                 DetailAnalogue::upsert($analogy_details_data, [], ['brand', 'model', 'years', 'detail_id']);
             }
         } catch (\Exception $e) {
+            \Log::warning($e->getMessage(), $e->getTrace());
+
             return ApiResponseServices::fail('Something was wrong , try again later');
         }
 

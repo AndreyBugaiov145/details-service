@@ -32,6 +32,13 @@ class DetailAnalogue extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'brand',
+        'model',
+        'years',
+        'detail_id',
+    ];
+
     public function detail()
     {
         return $this->belongsTo(Detail::class);

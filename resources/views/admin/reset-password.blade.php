@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-    <div class="container mt-3">
+    <div class="container mt-3 parser-setting-container">
         @if ($errors->has('success'))
             <div class="alert alert-success" role="alert">
                 {{ $errors->first('success') }}

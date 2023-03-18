@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\AnalogueDetails;
 use App\Http\Controllers\Categories;
 use App\Http\Controllers\Details;
-use App\Http\Controllers\ParsingSettingController;
+use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
-use App\Models\Category;
 use App\Services\CurrencyService;
 use App\Services\GrabberService;
 use App\Services\JobsService;
@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Route;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
-use function App\Services\convert;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +32,7 @@ use function App\Services\convert;
 
 Route::get('/', function () {
     return view('home');
-});
+})->name('home');
 
 Route::prefix('login')->group(function () {
     Route::get('/', function () {
@@ -57,22 +56,25 @@ Route::prefix('api')->group(function () {
         Route::get('/category-details/{category_id}', [Details::class, 'getCategoryDetails']);
         Route::get('/{id}/analogy-details', [Details::class, 'getAnalogyDetails']);
         Route::get('/{id}', [Details::class, 'getDetail']);
-        Route::post('/', [Details::class, 'create']);
-        Route::put('/{id}', [Details::class, 'update']);
-        Route::delete('/{id}', [Details::class, 'delete']);
+        Route::post('/', [Details::class, 'create'])->middleware('auth');
+        Route::put('/{id}', [Details::class, 'update'])->middleware('auth');
+        Route::delete('/{id}', [Details::class, 'delete'])->middleware('auth');
     });
 
-//    Route::prefix('analogy-detail')->group(function () {
-//        Route::get('me', [Users::class, 'getMe'])->name('me');
-//    });
+    Route::prefix('analogy-detail')->group(function () {
+        Route::post('/', [AnalogueDetails::class, 'create'])->middleware('auth');
+        Route::delete('/{id}', [AnalogueDetails::class, 'delete'])->middleware('auth');
+    });
 
 });
 
 
 Route::prefix('admin')->group(function () {
     Route::get('/', function () {
-        return view('admin.home');
+        return view('home');
     })->middleware('auth')->name('admin');
+
+    Route::get('/logout', [Users::class, 'logout'])->middleware('auth')->name('logout');
 
     Route::get('/reset-password', function () {
         return view('admin.reset-password');
@@ -83,9 +85,10 @@ Route::prefix('admin')->group(function () {
     Route::get('/parser-setting', function () {
         return view('admin.parser-setting');
     })->middleware('auth')->name('parser-setting');
-    Route::resource('/settings', ParsingSettingController::class)->except(['show', 'edit', 'create'])->middleware('auth');
-    Route::get('/settings/{id}/update_category_parsing_status', [ParsingSettingController::class, 'updateCategoryParsingStatus'])->middleware('auth');
-    Route::get('/settings/{id}/update_detail_parsing_status', [ParsingSettingController::class, 'updateDetailParsingStatus'])->middleware('auth');
+
+    Route::resource('/settings', ParsingSettings::class)->except(['show', 'edit', 'create'])->middleware('auth');
+    Route::get('/settings/{id}/update_category_parsing_status', [ParsingSettings::class, 'updateCategoryParsingStatus'])->middleware('auth');
+    Route::get('/settings/{id}/update_detail_parsing_status', [ParsingSettings::class, 'updateDetailParsingStatus'])->middleware('auth');
 });
 
 

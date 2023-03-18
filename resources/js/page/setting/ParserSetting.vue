@@ -30,7 +30,7 @@
             </b-modal>
         </div>
 
-        <table class="table">
+        <table class="table table-striped">
             <thead>
             <tr>
                 <th scope="col">#</th>
@@ -42,6 +42,7 @@
                 <th scope="col">Категорії поточний статус</th>
                 <th scope="col">Детилі оновлювалися</th>
                 <th scope="col">Детилі поточний статус</th>
+                <th scope="col"></th>
             </tr>
             </thead>
             <tbody>
@@ -55,8 +56,10 @@
                 <td>{{ parserSetting.category_parsing_status }}</td>
                 <td>{{ parserSetting.detail_parsing_at }}<span class="btn text-primary" @click="updateDetailParsingStatus(parserSetting.id)">Оновити Детилі</span></td>
                 <td>{{ parserSetting.detail_parsing_status }}</td>
-                <th scope="col" class="btn btn-info m-1" @click="showEditModal(parserSetting.id)">Змінити</th>
-                <th scope="col" class="btn btn-dark text-danger" @click="deleteSetting(parserSetting.id)">Видалити</th>
+                <td>
+                    <span class="btn btn-info m-1" @click="showEditModal(parserSetting.id)">Змінити</span>
+                    <span class="btn btn-dark text-danger" @click="deleteSetting(parserSetting.id)">Видалити</span>
+                </td>
             </tr>
             </tbody>
         </table>
@@ -93,7 +96,7 @@ export default {
                 alert('Something went wrong try again later.')
             }
         },
-        async updateCategoryParsingStatus(id){
+        async updateCategoryParsingStatus(id) {
             let response = await axios.get(`/admin/settings/${id}/update_category_parsing_status`)
             if (response.status) {
                 alert(response.data.message)
@@ -102,7 +105,7 @@ export default {
                 alert('Something went wrong try again later.')
             }
         },
-        async updateDetailParsingStatus(id){
+        async updateDetailParsingStatus(id) {
             let response = await axios.get(`/admin/settings/${id}/update_detail_parsing_status`)
             if (response.status) {
                 alert(response.data.message)

@@ -10870,12 +10870,6 @@ nav h1, nav .h1 {
   font-size: 14px;
 }
 
-.parser-setting-container {
-  background-color: rgba(225, 225, 225, 0.9);
-  height: 100%;
-  min-height: 100vh;
-}
-
 .phone {
   font-family: sans-serif;
   color: #302971;

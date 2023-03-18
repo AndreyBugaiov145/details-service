@@ -382,7 +382,7 @@ class DetailService
 
     protected function fetchChildCategories(array $data)
     {
-        Log::info('start fetching child categories', $data);
+        Log::info('start fetching child categories', $data[0]);
         $this->attempts = 0;
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
@@ -521,7 +521,7 @@ class DetailService
 
     protected function fetchAnalogyDetails($details)
     {
-        Log::info('start fetching Analogy Details', $details->toArray());
+        Log::info('start fetching Analogy Details',[$details->toArray()[0]]);
         $this->attempts = 0;
         $analogyDetails = [];
         $data = $details->toArray();

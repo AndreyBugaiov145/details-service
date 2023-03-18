@@ -21,7 +21,7 @@ class Users extends Controller
         if (Auth::attempt($credentials, $request->get('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended('admin');
+            return redirect()->intended('home');
         }
 
         return back()->withErrors([
@@ -52,5 +52,12 @@ class Users extends Controller
         $authUser = Auth::user();
 
         return ApiResponseServices::successCustomData(optional($authUser)->toArray());
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+
+        return redirect('/');
     }
 }

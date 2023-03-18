@@ -55,7 +55,11 @@ class ParsingSetting extends Model
     ];
 
     public function getCategoryParsingAtAttribute($value) {
-        return Carbon::parse($value)->format('Y-m-d');
+        return Carbon::parse($value)->format('Y-m-d G:i:s');
+    }
+
+    public function getDetailParsingAtAttribute($value) {
+        return Carbon::parse($value)->format('Y-m-d G:i:s');
     }
 
 }

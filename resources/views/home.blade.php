@@ -1,7 +1,15 @@
 @extends('layout.app')
 
 @section('navbar')
-    @include('components.navbar_goust')
+    @auth
+        @include('components.navbar')
+        @include('components.navbar_guest')
+    @endauth
+
+    @guest
+        @include('components.navbar_guest')
+    @endguest
+
 @endsection
 
 @section('content')

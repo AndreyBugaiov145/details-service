@@ -1,8 +1,8 @@
 <template>
     <div class="container parser-setting-container">
         <br>
-        <h3>Якщо моделі машин не задано будуть взяті всі моделі цього бренду</h3>
-        <button type="button" class="btn btn-success mb-5" @click="showModal">Add new</button>
+        <h3>Якщо моделі машин не задано будуть взяті всі моделі цього бренду,моделі машин записувати через кому.('AVEO,CAMARO')</h3>
+        <button type="button" class="btn btn-success mb-5" @click="showModal">Додати</button>
         <div>
             <b-modal id="editSetting"
                      title="Edit"
@@ -12,11 +12,11 @@
                 <form>
                     <div class="form-group">
                         <label for="brand">Бренд</label>
-                        <input type="text" v-model.trim="setting.brand" class="form-control" id="brand" aria-describedby="emailHelp">
+                        <input type="text" v-model.trim="setting.brand" class="form-control" id="brand">
                     </div>
                     <div class="form-group">
-                        <label for="car_models">Моделі машин (Вводити через кому!)</label>
-                        <input type="text" v-model.trim="setting.car_models" class="form-control" id="car_models" aria-describedby="emailHelp">
+                        <label for="car_models">Моделі машин</label>
+                        <input type="text" v-model.trim="setting.car_models" class="form-control" id="car_models">
                     </div>
                     <div class="form-group">
                         <label for="year">Рік</label>
@@ -40,8 +40,8 @@
                 <th scope="col">Показувати клієнтам</th>
                 <th scope="col">Категорії оновлювалися</th>
                 <th scope="col">Категорії поточний статус</th>
-                <th scope="col">Дитилі оновлювалися</th>
-                <th scope="col">Дитилі поточний статус</th>
+                <th scope="col">Детилі оновлювалися</th>
+                <th scope="col">Детилі поточний статус</th>
             </tr>
             </thead>
             <tbody>
@@ -51,12 +51,12 @@
                 <td>{{ parserSetting.car_models }}</td>
                 <td>{{ parserSetting.year }}</td>
                 <td><input class="form-check-input" type="checkbox" id="" disabled :checked="parserSetting.is_show"></td>
-                <td>{{ parserSetting.category_parsing_at }}<span class="btn text-primary" @click="updateCategoryParsingStatus(parserSetting.id)">Оновиты Категорії та Дитилі</span></td>
+                <td>{{ parserSetting.category_parsing_at }}<span class="btn text-primary" @click="updateCategoryParsingStatus(parserSetting.id)">Оновити Категорії та Детилі</span></td>
                 <td>{{ parserSetting.category_parsing_status }}</td>
-                <td>{{ parserSetting.detail_parsing_at }}<span class="btn text-primary" @click="updateDetailParsingStatus(parserSetting.id)">Оновиты Дитилі</span></td>
+                <td>{{ parserSetting.detail_parsing_at }}<span class="btn text-primary" @click="updateDetailParsingStatus(parserSetting.id)">Оновити Детилі</span></td>
                 <td>{{ parserSetting.detail_parsing_status }}</td>
-                <th scope="col" class="btn btn-info m-1" @click="showEditModal(parserSetting.id)">Edit</th>
-                <th scope="col" class="btn btn-dark text-danger" @click="deleteSetting(parserSetting.id)">Delete</th>
+                <th scope="col" class="btn btn-info m-1" @click="showEditModal(parserSetting.id)">Змінити</th>
+                <th scope="col" class="btn btn-dark text-danger" @click="deleteSetting(parserSetting.id)">Видалити</th>
             </tr>
             </tbody>
         </table>

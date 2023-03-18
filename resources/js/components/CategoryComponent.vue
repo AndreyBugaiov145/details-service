@@ -22,13 +22,11 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th scope="col">Называ</th>
-                    <th scope="col">
-                        серійний номер
-                    </th>
+                    <th scope="col">Назва</th>
+                    <th scope="col">OEM / Interchange Numbers</th>
                     <th scope="col">Опис</th>
-                    <th scope="col">Залишок</th>
                     <th scope="col">ціна</th>
+                    <th v-if="authUser" scope="col">Залишок</th>
                     <th v-if="authUser" scope="col">Редагуваты</th>
                 </tr>
                 </thead>

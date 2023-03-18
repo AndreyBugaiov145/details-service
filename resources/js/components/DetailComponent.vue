@@ -3,10 +3,10 @@
         <td><span>{{ detail.title }}</span></td>
         <td><a href="" @click.prevent="loadAnalogyDetail" title="Деталі аналоги">{{ detail.s_number }}</a></td>
         <td class="detail-desc">{{ detail.short_description }}</td>
-        <td class="">{{ detail.stock }}</td>
         <td v-if="detail.isDisabled">Тимчасово недоступно</td>
-        <td v-else-if="detail.stock == 0">Час доставки 14 – 25 днів</td>
+        <td v-else-if="detail.stock == 0">Під замовлення,час доставки 14 – 25 днів</td>
         <td v-else>{{ detail.total_price_uah }} грн.</td>
+        <td v-if="authUser" class="">{{ detail.stock }}</td>
         <td v-if="authUser">
             <span class="btn btn-info mb-1" @click="showDetailModal"> Редагуваты</span>
             <span class="btn btn-info mb-1" @click="showAddAnalogyDetailModal"> Додати аналогову деталь</span>
@@ -18,10 +18,10 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Бренд</th>
-                    <th scope="col">Модель</th>
-                    <th scope="col">Рік</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
                     <th scope="col" v-if="authUser"></th>
                 </tr>
                 </thead>
@@ -59,19 +59,19 @@
                     <input type="text" v-model.trim="newDetail.stock" class="form-control" id="newDetail-stock">
                 </div>
                 <div class="form-group">
-                    <label for="price">Базова ціна (має бути більше 0 !!!)[$]</label>
+                    <label for="price">Базова ціна (має бути більше 0 !!!) [$]</label>
                     <input type="text" v-model.trim="newDetail.price" class="form-control" id="price">
                 </div>
                 <div class="form-group">
-                    <label for="us_shipping_price">Ціна доставки з США[$]</label>
+                    <label for="us_shipping_price">Ціна доставки по США [$]</label>
                     <input type="text" v-model.trim="newDetail.us_shipping_price" class="form-control" id="us_shipping_price">
                 </div>
                 <div class="form-group">
-                    <label for="ua_shipping_price">Ціна доставки по Україні[$]</label>
+                    <label for="ua_shipping_price">Ціна доставка в Україні [$]</label>
                     <input type="text" v-model.trim="newDetail.ua_shipping_price" class="form-control" id="ua_shipping_price">
                 </div>
                 <div class="form-group">
-                    <label for="price_markup">Надбавкова сума[$]</label>
+                    <label for="price_markup">Додана вартість [$]</label>
                     <input type="text" v-model.trim="newDetail.price_markup" class="form-control" id="price_markup">
                 </div>
 

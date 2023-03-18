@@ -4,6 +4,13 @@
         <center>
             <div><h2> Всі запчастини для вашого авто</h2></div>
         </center>
-        <center><h3>Замовляти за телефоном <a class="phone" href="tel:+380684513553">+380684513553</a></h3></center>
+        <div class="d-flex flex-row-reverse">
+            <div class="d-flex flex-column">
+                <div><span class="phone">
+                        <img  class="phone icon" src="{{asset('images/house-svgrepo-com.svg')}}" alt="адресса"> м. Київ, вул. Машинобудівна, 21А</span></div>
+                <div><span class="phone"> <img  class="phone icon" src="{{asset('images/phone-call-svgrepo-com.svg')}}" alt="телефон"> <a class="phone" href="tel:+380684513553">+380684513553</a></span></div>
+                <div><span class="phone">Графік роботи : з 8:00 до 21:00 без вихідних</span></div>
+            </div>
+            </div>
     </div>
 </nav>

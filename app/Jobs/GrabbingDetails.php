@@ -3,8 +3,10 @@
 namespace App\Jobs;
 
 use App\Models\ParsingSetting;
+use App\Models\ParsingStatistic;
 use App\Services\GrabberService;
 use App\Services\ProxyService;
+use App\Utils\MemoryUtils;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -57,6 +59,15 @@ class GrabbingDetails implements ShouldQueue
 
         $this->parserSetting->update([
             'detail_parsing_status' => ParsingSetting::STATUS_FAIL,
+        ]);
+
+        ParsingStatistic::create([
+            'parsing_setting_id' => $this->parserSetting->id,
+            'parsing_status' => $this->parserSetting->category_parsing_status,
+            'request_count' => 0,
+            'request_time' => 0,
+            'parsing_type' => ParsingStatistic::PARSING_CATEGORY,
+            'used_memory' => MemoryUtils::getUsedMemory()
         ]);
     }
 }

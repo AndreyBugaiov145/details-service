@@ -19,7 +19,7 @@ class CreateDetailAnaloguesTable extends Migration
             $table->string('model')->nullable();
             $table->string('years')->nullable();
             $table->unsignedBigInteger('detail_id')->unsigned();
-            $table->foreign('detail_id')->references('id')->on('details');
+//            $table->foreign('detail_id')->references('id')->on('details');
             $table->timestamps();
         });
     }

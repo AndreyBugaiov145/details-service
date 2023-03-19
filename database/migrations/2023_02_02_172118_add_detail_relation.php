@@ -14,7 +14,7 @@ class AddDetailRelation extends Migration
     public function up()
     {
         Schema::table('details', function (Blueprint $table) {
-            $table->foreign('category_id')->references('id')->on('categories');
+//            $table->foreign('category_id')->references('id')->on('categories');
 
         });
     }

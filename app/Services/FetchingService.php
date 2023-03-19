@@ -14,7 +14,7 @@ class FetchingService
     protected $connect_timeout = 10;
     protected $proxies = [];
     protected $proxyService;
-    protected $chunkCount = 650;
+    protected $chunkCount = 500;
 
     public function __construct()
     {
@@ -166,7 +166,7 @@ class FetchingService
             foreach ($chunk as $item) {
 
                 $proxy = Arr::random($this->getProxies(count($chunk)));
-                $uid = $item['id'];
+                $uid = $item['partkey'];
                 $key = $uid . '|' . $proxy;
                 $promises[$key] = $this->getAsyncRequestDetailBuyersGuide($item['partkey'], $proxy);
             }

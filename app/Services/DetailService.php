@@ -521,12 +521,20 @@ class DetailService
 
     protected function fetchAnalogyDetails($details)
     {
-        Log::info('start fetching Analogy Details',[$details->toArray()[0]]);
+        Log::info('start fetching Analogy Details', [$details->toArray()[0]]);
         $this->attempts = 0;
         $analogyDetails = [];
-        $data = $details->toArray();
-        Log::info('start fetching Analogy Details count' . count($data));
-        $result = $this->fetchRequestAnalogyDetails($data);
+        Log::info('start fetching Analogy Details count' . count($details));
+
+        //        grouping details by partkey
+        $data = $details->groupBy('partkey')->toArray();
+        $data = Arr::map($data, function ($items, $key) {
+            $items['partkey'] = $key;
+            return $items;
+        });
+        Log::info(' grouping details by partkey' . $data[0]);
+
+        $result = $this->fetchRequestAnalogyDetails(array_keys($data));
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchAnalogyDetails. attempts > $this->attempts");
             Log::critical('Faeil max_attempts', $data);
@@ -547,17 +555,24 @@ class DetailService
         foreach ($result['success'] as $key => $responseArr) {
             $html = $this->getBuyersGuiHtmlFromStream($responseArr['value']);
             $item = Arr::first($data, function ($item) use ($key) {
-                return $item['id'] == $key;
+                return $item['partkey'] == $key;
             });
 
             $parser = new ParserService($html);
 
             $detailsData = $parser->getAnalogyDetails();
-
-            foreach ($detailsData as $i => $detail) {
-                $detailsData[$i]['detail_id'] = $item['id'];
+            $allAnalogyDetailsData = [];
+            foreach ($item as $detail) {
+                foreach ($detailsData as $i => $analogyDetail) {
+                    $analogyDetail['detail_id'] = $detail['id'];
+                    $AllAnalogyDetailsData[] = $analogyDetail;
+                }
             }
-            $analogyDetails[] = $detailsData;
+
+//            foreach ($detailsData as $i => $detail) {
+//                $detailsData[$i]['detail_id'] = $item['id'];
+//            }
+            $analogyDetails[] = $allAnalogyDetailsData;
         }
 
         return $this->array2Dto1DAndAddUid($analogyDetails, false);
@@ -573,7 +588,7 @@ class DetailService
         foreach ($result as $key => $responseArr) {
             if ($responseArr['state'] === 'rejected') {
                 $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {
-                    return $item['id'] == $key;
+                    return $item['partkey'] == $key;
                 });
             } else {
                 $successCategoryData[$key] = $responseArr;

@@ -21,7 +21,7 @@ class Proxy extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('onlyWorking', function (Builder $builder) {
-            $builder->where('fail_count', '<', 11);
+            $builder->where('fail_count', '<', 15);
         });
     }
 }

@@ -20,11 +20,13 @@ class ParserService
         foreach ($divs as $div) {
             $jsn = (array)json_decode(html_entity_decode($div->firstChild()->getAttribute('value')));
             $a = $div->find('a.navlabellink')[0];
-            $jsn['href'] = 'https://www.rockauto.com' . $a->getAttribute('href');
-            $jnsData[] = [
-                'jsn' => $jsn,
-                'title' => $a->text
-            ];
+            if ($a) {
+                $jsn['href'] = 'https://www.rockauto.com' . $a->getAttribute('href');
+                $jnsData[] = [
+                    'jsn' => $jsn,
+                    'title' => $a->text
+                ];
+            }
         }
 
         return $jnsData;

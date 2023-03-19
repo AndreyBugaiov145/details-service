@@ -61,7 +61,7 @@ class DetailService
             $this->parsingSetting->category_parsing_at = Carbon::now();
             Log::info('finish fetching categories');
 
-            Log::info('start fetching details.', $this->detailsData);
+            Log::info('start saving details.', $this->detailsData[0]);
             $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
             if ($result) {
                 $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
@@ -109,7 +109,7 @@ class DetailService
         try {
             $this->fetchChildCategories($categoriesData);
             $this->attempts = 0;
-            Log::info('fetched Details Only ', $this->detailsData);
+            Log::info('fetched Details Only ', $this->detailsData[0]);
 
             $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
             if ($result) {

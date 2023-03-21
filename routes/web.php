@@ -5,6 +5,9 @@ use App\Http\Controllers\Categories;
 use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
+use App\Jobs\GrabbingDetails;
+use App\Models\Detail;
+use App\Models\ParsingSetting;
 use App\Services\CurrencyService;
 use App\Services\GrabberService;
 use App\Services\JobsService;
@@ -93,16 +96,16 @@ Route::prefix('admin')->group(function () {
 
 
 Route::get('/job', function () {
-//    $categories = Category::get();
-//        $category = $categories->first(function ($category)   {
-//            return $category->title == 'AC' && $category->parent_id == null;
-//        });
-//        dd($category);
-//    $rez = Category::upsert([
-//        ['title' => 'AC',  'jsn' => '[asdasd]']
-//    ], ['title', 'parent_id'], ['jsn']);
-//    Log::debug('ASDASD');
-//    dd($rez);
+
+
+//dispatch(new GrabbingDetails(ParsingSetting::first()));
+//dd(1);
+
+
+//    $ProxyService = new ProxyService();
+//
+//    dd($ProxyService->getProxies());
+
     $JobsService = new JobsService();
     $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
 

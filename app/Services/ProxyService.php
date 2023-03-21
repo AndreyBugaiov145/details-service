@@ -15,8 +15,8 @@ class ProxyService
         "anonymity" => "all"
     ];
 
-    protected $connect_timeout = 40;
-    protected $timeout = 20;
+    protected $connect_timeout = 45;
+    protected $timeout = 30;
 
     protected $url = 'https://www.rockauto.com/';
 

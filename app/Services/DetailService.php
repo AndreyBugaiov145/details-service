@@ -141,7 +141,8 @@ class DetailService
                 'parsing_status' => $this->parsingSetting->detail_parsing_status,
                 'request_count' => $this->request_count,
                 'request_time' => $time,
-                'parsing_type' => ParsingStatistic::PARSING_DETAIL
+                'parsing_type' => ParsingStatistic::PARSING_DETAIL,
+                'used_memory' => MemoryUtils::getUsedMemory()
             ]);
         }
 
@@ -527,14 +528,35 @@ class DetailService
         Log::info('start fetching Analogy Details count' . count($details));
 
         //        grouping details by partkey
-        $data = $details->groupBy('partkey')->toArray();
-        $data = Arr::map($data, function ($items, $key) {
-            $items['partkey'] = $key;
-            return $items;
-        });
-        Log::info(' grouping details by partkey' . $data[0]);
+        $dataDetails = $details->groupBy('partkey');
 
-        $result = $this->fetchRequestAnalogyDetails(array_keys($data));
+        //        saving existing analog parts by key partkey
+        $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
+            ->where('is_parsing_analogy_details',true)
+            ->with('detail_analogues')->get();
+
+        $existsDetails = $existsDetails->groupBy('partkey');
+//        Log::info('grouping details by partkey' . $dataDetails->first()->toArray());
+
+        foreach ($existsDetails as $key => $existsDetail) {
+            if (isset($dataDetails[$key])) {
+                foreach ($dataDetails[$key] as $dataDetail) {
+                    $dataDetail->detail_analogues()->saveMany($existsDetail[0]->detail_analogues);
+                    $dataDetail->is_parsing_analogy_details= true;
+                }
+                $dataDetails->forget($key);
+            }
+        }
+
+        $data = [];
+        foreach ($dataDetails->toArray() as $groupKey => $group) {
+            $group['partkey'] = $groupKey;
+            $data[$groupKey] = $group;
+
+        }
+
+
+        $result = $this->fetchRequestAnalogyDetails($data);
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchAnalogyDetails. attempts > $this->attempts");
             Log::critical('Faeil max_attempts', $data);
@@ -557,18 +579,20 @@ class DetailService
             $item = Arr::first($data, function ($item) use ($key) {
                 return $item['partkey'] == $key;
             });
+            unset($item['partkey']);
 
             $parser = new ParserService($html);
-
             $detailsData = $parser->getAnalogyDetails();
             $allAnalogyDetailsData = [];
+
             foreach ($item as $detail) {
+
                 foreach ($detailsData as $i => $analogyDetail) {
+
                     $analogyDetail['detail_id'] = $detail['id'];
-                    $AllAnalogyDetailsData[] = $analogyDetail;
+                    $allAnalogyDetailsData[] = $analogyDetail;
                 }
             }
-
 //            foreach ($detailsData as $i => $detail) {
 //                $detailsData[$i]['detail_id'] = $item['id'];
 //            }

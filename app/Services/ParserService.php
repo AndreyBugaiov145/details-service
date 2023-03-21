@@ -92,16 +92,18 @@ class ParserService
     {
         $data = [];
         $trs = $this->dom->find('div.buyersguide-nested table tr');
-        foreach ($trs as $tr) {
+        foreach ($trs as $i => $tr) {
             $tds = $tr->find('td');
             if (count($tds) > 2) {
                 $data[] = [
+                    'id' => $i + 1,
                     'brand' => optional($tds[0])->text,
                     'model' => optional($tds[1])->text,
                     'years' => optional($tds[2])->text,
                 ];
             } else {
                 $data[] = [
+                    'id' => $i + 1,
                     'brand' => optional($tds[0])->text,
                     'years' => optional($tds[1])->text,
                     'model' => null,

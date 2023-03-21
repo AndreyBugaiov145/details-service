@@ -102,6 +102,32 @@ Route::get('/job', function () {
 //dd(1);
 
 
+//    $arr = [
+//        ['test'=>'qwe','data'=>1],
+//        ['test'=>'as','data'=>12],
+//        ['test'=>'qwe','data'=>14],
+//        ['test'=>'qwe','data'=>13],
+//    ];
+//
+//    $col = collect($arr);
+////    $col[0]->combine(['srt'=> 'asdasd']) ;
+//    $col = $col->groupBy('test');
+//
+//    $col =  $col->every(function ( $cl,  $key) {
+//        $cl->every(function ( $value,  $key) {
+//            $value['asd'] = 'sdfghjk';
+//            return $value;
+//        });
+//        return 1;
+//    });
+////    foreach($col as $c){
+////        $c->every(function ( $value, int $key) {
+////            $value['asd'] = 'sdfghjk';
+////            return $value;
+////        });
+////    }
+//    dd($col);
+
 //    $ProxyService = new ProxyService();
 //
 //    dd($ProxyService->getProxies());

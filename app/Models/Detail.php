@@ -68,16 +68,17 @@ class Detail extends Model
         'currency_id',
         'partkey',
         'is_manual_added',
+        'analogy_details',
     ];
+
+    protected $casts = [
+        'analogy_details' => 'array',
+    ];
+
 
     public function category()
     {
         return $this->belongsTo(Category::class,);
-    }
-
-    public function detail_analogues()
-    {
-        return $this->hasMany(DetailAnalogue::class,);
     }
 
     public function getTotalPriceUsdAttribute()

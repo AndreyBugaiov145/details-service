@@ -34,8 +34,7 @@ class DetailRequest extends FormRequest
         return [
             'title' => 'required|string',
             's_number' => 'required',
-            'short_description' => 'string',
-            'price' => 'integer',
+            'price' => 'numeric',
             'us_shipping_price' => 'integer',
             'ua_shipping_price' => 'integer',
             'price_markup' => 'integer',

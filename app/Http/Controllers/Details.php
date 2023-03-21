@@ -55,12 +55,6 @@ class Details extends Controller
             $detail = Detail::find($id);
             $detail->update($data);
 
-            if ($request->has('analogy_details')) {
-                $analogy_details_data = array_map(function ($item) use ($detail) {
-                    $item['detail_id'] = $detail->id;
-                }, $request->get('analogy_details'));
-                DetailAnalogue::upsert($analogy_details_data, ['id'], ['brand', 'model', 'years', 'detail_id']);
-            }
         } catch (\Exception $e) {
             return ApiResponseServices::fail('Something was wrong , try again later');
         }

@@ -63,12 +63,6 @@ Route::prefix('api')->group(function () {
         Route::put('/{id}', [Details::class, 'update'])->middleware('auth');
         Route::delete('/{id}', [Details::class, 'delete'])->middleware('auth');
     });
-
-    Route::prefix('analogy-detail')->group(function () {
-        Route::post('/', [AnalogueDetails::class, 'create'])->middleware('auth');
-        Route::delete('/{id}', [AnalogueDetails::class, 'delete'])->middleware('auth');
-    });
-
 });
 
 

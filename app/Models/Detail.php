@@ -25,7 +25,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Category $category
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DetailAnalogue> $detail_analogues
  * @property-read int|null $detail_analogues_count
  * @method static \Illuminate\Database\Eloquent\Builder|Detail newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Detail newQuery()

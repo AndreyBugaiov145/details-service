@@ -541,7 +541,7 @@ class DetailService
         //        saving existing analog parts by key partkey
         $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
             ->where('is_parsing_analogy_details', true)
-            ->with('detail_analogues')->get();
+           ->get();
 
         $existsDetails = $existsDetails->groupBy('partkey');
 //        Log::info('grouping details by partkey' . $dataDetails->first()->toArray());
@@ -550,8 +550,6 @@ class DetailService
         foreach ($existsDetails as $key => $existsDetail) {
             if (isset($dataDetails[$key])) {
                 foreach ($dataDetails[$key] as $dataDetail) {
-                    $dataDetail->detail_analogues()->saveMany($existsDetail[0]->analogy_details);
-                    $dataDetail->is_parsing_analogy_details = true;
                     $this->detailsData[] = array_merge($dataDetail, [
                         'analogy_details' => json_encode($existsDetail[0]->analogy_detail),
                         'is_parsing_analogy_details' => true

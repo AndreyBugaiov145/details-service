@@ -60,12 +60,12 @@ class DetailService
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_SUCCESS;
             $this->parsingSetting->category_parsing_at = Carbon::now();
             Log::info('finish fetching categories');
-//
-//            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
-//            Log::info('Details count' . count($detailsDataArr));
-//            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
-//            Log::info('start saving details.', $this->detailsData[0]);
-//            $this->saveDetails($this->detailsData);
+
+            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            Log::info('Details count' . count($detailsDataArr));
+            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+            Log::info('start saving details.', $this->detailsData[0]);
+            $this->saveDetails($this->detailsData);
         } catch (\Exception $e) {
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;

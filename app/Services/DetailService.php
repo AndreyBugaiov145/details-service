@@ -550,7 +550,7 @@ class DetailService
             if (isset($dataDetails[$key])) {
                 foreach ($dataDetails[$key] as $dataDetail) {
                     $this->detailsData[] = array_merge($dataDetail, [
-                        'analogy_details' => json_encode($existsDetail[0]->analogy_detail),
+                        'analogy_details' => json_encode($existsDetail[0]->analogy_details),
                         'is_parsing_analogy_details' => true
                     ]);
                 }

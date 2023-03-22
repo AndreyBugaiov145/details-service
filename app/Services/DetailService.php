@@ -60,27 +60,12 @@ class DetailService
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_SUCCESS;
             $this->parsingSetting->category_parsing_at = Carbon::now();
             Log::info('finish fetching categories');
-
-            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
-            Log::info('Details count' . count($detailsDataArr));
-            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
-            Log::info('start saving details.', $this->detailsData[0]);
-            $result = $this->saveDetails($this->detailsData);
-
-//            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
-//            if ($result) {
-//                $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
-//                $this->parsingSetting->detail_parsing_at = Carbon::now();
 //
-//
-//                $details = $this->getDetails($this->detailsData);
-//                $analogyDetailsData = $this->fetchAndMergeToDetailAnalogyDetails($details);
-//                if ($this->saveAnalogyDetails($analogyDetailsData)) {
-//                    Detail::whereIn('id', array_unique(array_map(function ($item) {
-//                        return $item['detail_id'];
-//                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
-//                };
-//            }
+//            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+//            Log::info('Details count' . count($detailsDataArr));
+//            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+//            Log::info('start saving details.', $this->detailsData[0]);
+//            $this->saveDetails($this->detailsData);
         } catch (\Exception $e) {
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
@@ -117,27 +102,34 @@ class DetailService
             $this->attempts = 0;
             Log::info('fetched Details Only ', $this->detailsData[0]);
 
-            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
-            if ($result) {
-                $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
-                $this->parsingSetting->detail_parsing_at = Carbon::now();
-
-                $details = $this->getDetails($this->detailsData);
-                $analogyDetailsData = $this->fetchAndMergeToDetailAnalogyDetails($details);
-                if ($this->saveAnalogyDetails($analogyDetailsData)) {
-                    Detail::whereIn('id', array_unique(array_map(function ($item) {
-                        return $item['detail_id'];
-                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
-                };
-            }
+            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            Log::info('Details count' . count($detailsDataArr));
+            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+            Log::info('start saving details.', $this->detailsData[0]);
+            $this->saveDetails($this->detailsData);
+//
+//
+//
+//            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
+//            if ($result) {
+//                $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
+//                $this->parsingSetting->detail_parsing_at = Carbon::now();
+//
+//                $details = $this->getDetails($this->detailsData);
+//                $analogyDetailsData = $this->fetchAndMergeToDetailAnalogyDetails($details);
+//                if ($this->saveAnalogyDetails($analogyDetailsData)) {
+//                    Detail::whereIn('id', array_unique(array_map(function ($item) {
+//                        return $item['detail_id'];
+//                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
+//                };
+//            }
         } catch (\Exception $e) {
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_at = Carbon::now();
+            $this->parsingSetting->save();
 
             Log::critical($e->getMessage(), $e->getTrace());
         } finally {
-            $this->parsingSetting->save();
-
             MemoryUtils::loggingUsedMemory();
             $time = round(microtime(true) - $start, 4);
             Log::debug('Время выполнения скрипта: ' . $time . ' сек.');

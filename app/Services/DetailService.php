@@ -381,10 +381,10 @@ class DetailService
 
     protected function fetchChildCategories(array $data)
     {
-        Log::info('start fetching child categories', $data[0]);
         $this->attempts = 0;
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
+        Log::info('start fetching child categories', $data[0]);
         Log::info('start fetching child categories count' . count($data));
         $result = $this->fetchRequestCategories($data);
 

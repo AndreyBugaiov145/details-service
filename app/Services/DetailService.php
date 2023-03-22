@@ -61,10 +61,10 @@ class DetailService
             $this->parsingSetting->category_parsing_at = Carbon::now();
             Log::info('finish fetching categories');
 
-            Log::info('start saving details.', $this->detailsData[0]);
-
             $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            Log::info('Details count' . count($detailsDataArr));
             $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+            Log::info('start saving details.', $this->detailsData[0]);
             $result = $this->saveDetails($this->detailsData);
 
 //            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
@@ -532,7 +532,6 @@ class DetailService
         Log::info('start fetching Analogy Details', [$detailsArray[0]]);
         $this->attempts = 0;
         $analogyDetails = [];
-        Log::info('start fetching Analogy Details count' . count($detailsArray));
 
         //        grouping details by partkey
         $details = collect($detailsArray);
@@ -565,6 +564,8 @@ class DetailService
             $data[$groupKey] = $group;
 
         }
+
+        Log::info('start fetching Analogy Details count' . count($data));
 
         $result = $this->fetchRequestAnalogyDetails($data);
         if ($this->attempts > $this->max_attempts) {

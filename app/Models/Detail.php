@@ -53,6 +53,8 @@ class Detail extends Model
 
     protected $appends = ['total_price_usd', 'total_price_uah','isDisabled'];
 
+    public static $withoutAppends = false;
+
     protected $fillable = [
         'title',
         'slug',
@@ -96,5 +98,26 @@ class Detail extends Model
         $cf = optional(Currency::where('code', Currency::UAH_CODE)->first())->rate;
 
         return $this->total_price_usd * $cf;
+    }
+
+    public function getAppends(){
+
+        return $this->appends;
+    }
+
+    public function scopeWithoutAppends($query)
+    {
+        self::$withoutAppends = true;
+
+        return $query;
+    }
+
+    protected function getArrayableAppends()
+    {
+        if (self::$withoutAppends){
+            return [];
+        }
+
+        return parent::getArrayableAppends();
     }
 }

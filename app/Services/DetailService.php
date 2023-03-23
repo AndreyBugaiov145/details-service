@@ -63,7 +63,11 @@ class DetailService
 
             $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
             Log::info('Details count' . count($detailsDataArr));
-            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+            $this->saveDetails($detailsDataArr);
+
+            $detailsDataArrFromDB = $this->getDetails($this->detailsData);
+
+            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
             Log::info('start saving details.', $this->detailsData[0]);
             $this->saveDetails($this->detailsData);
         } catch (\Exception $e) {
@@ -100,9 +104,13 @@ class DetailService
         try {
             $this->fetchChildCategories($categoriesData);
             $this->attempts = 0;
-            Log::info('fetched Details Only ', $this->detailsData[0]);
+            Log::info('fetched Details Only', $this->detailsData[0]);
 
-            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            //save details
+//            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
+
+            $detailsDataArr = $this->getDetails($this->detailsData);
             Log::info('Details count' . count($detailsDataArr));
             $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
             Log::info('start saving details.', $this->detailsData[0]);
@@ -381,10 +389,11 @@ class DetailService
 
     protected function fetchChildCategories(array $data)
     {
+        Log::info('start fetching child categories', $data[0]);
         $this->attempts = 0;
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
-        Log::info('start fetching child categories', $data[0]);
+
         Log::info('start fetching child categories count' . count($data));
         $result = $this->fetchRequestCategories($data);
 
@@ -496,7 +505,8 @@ class DetailService
                 's_number',
                 'price',
                 'partkey',
-                'analogy_details'
+                'analogy_details',
+                'is_parsing_analogy_details'
             ]);
         }
 
@@ -507,7 +517,7 @@ class DetailService
         return true;
     }
 
-    protected function getDetails($detailsData)
+    protected function getDetails($detailsData): array
     {
         $categoryIds = array_map(function ($details) {
             if (isset($details[0])) {
@@ -516,14 +526,24 @@ class DetailService
             return 0;
         }, $detailsData);
 
-        return Detail::whereIn('category_id', $categoryIds)->where('is_parsing_analogy_details', false)->get();
+        return Detail::select([
+            'title',
+            'category_id',
+            'price',
+            'short_description',
+            's_number',
+            'price',
+            'partkey',
+            'currency_id',
+        ])->withoutAppends()->whereIn('category_id', $categoryIds)
+            ->where('is_parsing_analogy_details', false)->get()->toArray();
     }
 
     protected function fetchAndMergeToDetailAnalogyDetails(array $detailsArray)
     {
         Log::info('start fetching Analogy Details', [$detailsArray[0]]);
         $this->attempts = 0;
-        $analogyDetails = [];
+        $this->detailsData = [];
 
         //        grouping details by partkey
         $details = collect($detailsArray);
@@ -532,12 +552,11 @@ class DetailService
         //        saving existing analog parts by key partkey
         $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
             ->where('is_parsing_analogy_details', true)
-           ->get();
+            ->get();
 
         $existsDetails = $existsDetails->groupBy('partkey');
 //        Log::info('grouping details by partkey' . $dataDetails->first()->toArray());
 
-        $this->detailsData = [];
         foreach ($existsDetails as $key => $existsDetail) {
             if (isset($dataDetails[$key])) {
                 foreach ($dataDetails[$key] as $dataDetail) {

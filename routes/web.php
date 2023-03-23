@@ -127,8 +127,8 @@ Route::get('/job', function () {
 //    dd($ProxyService->getProxies());
 
     $JobsService = new JobsService();
-//    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
-    $JobsService->addGrabbingAllDetailsJobs();
+    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
+//    $JobsService->addGrabbingAllDetailsJobs();
 
     dd(1);
     $CurrencyService = new CurrencyService();

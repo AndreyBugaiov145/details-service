@@ -125,10 +125,21 @@ Route::get('/job', function () {
 //    $ProxyService = new ProxyService();
 //
 //    dd($ProxyService->getProxies());
-
+//   $d  =  Detail::select([
+//        'title',
+//        'category_id',
+//        'price',
+//        'short_description',
+//        's_number',
+//        'price',
+//        'partkey',
+//        'currency_id',
+//    ])->withoutAppends()->whereIn('category_id', [179,177,169,161])
+//        ->where('is_parsing_analogy_details', false)->get()->toArray();
+//   dd($d);
     $JobsService = new JobsService();
-    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
-//    $JobsService->addGrabbingAllDetailsJobs();
+//    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
+    $JobsService->addGrabbingAllDetailsJobs();
 
     dd(1);
     $CurrencyService = new CurrencyService();

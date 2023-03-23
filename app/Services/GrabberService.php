@@ -34,7 +34,7 @@ class GrabberService
             'detail_parsing_status' => ParsingSetting::STATUS_IN_PROGRESS,
         ]);
 
-        $categories = CategoryRepository::getLastChildrenCategories($parsingSetting->brand);
+        $categories = CategoryRepository::getLastChildrenCategories($parsingSetting->brand ,$parsingSetting->year);
 
         $detailService = new DetailService($parsingSetting);
         $detailService->fetchDetailsInfo([$categories]);

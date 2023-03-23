@@ -66,10 +66,11 @@ class DetailService
             $this->saveDetails($detailsDataArr);
 
             $detailsDataArrFromDB = $this->getDetails($this->detailsData);
-
-            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
-            Log::info('start saving details.', $this->detailsData[0]);
-            $this->saveDetails($this->detailsData);
+            if (count($detailsDataArrFromDB)) {
+                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
+                Log::info('start saving details.', $this->detailsData[0]);
+                $this->saveDetails($this->detailsData);
+            }
         } catch (\Exception $e) {
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
@@ -112,11 +113,13 @@ class DetailService
 
             $detailsDataArr = $this->getDetails($this->detailsData);
             Log::info('Details count' . count($detailsDataArr));
-            $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
-            Log::info('start saving details.', $this->detailsData[0]);
-            $this->saveDetails($this->detailsData);
-//
-//
+            if (count($detailsDataArr)) {
+                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+                Log::info('start saving details.', $this->detailsData[0]);
+                $this->saveDetails($this->detailsData);
+            }
+
+
 //
 //            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
 //            if ($result) {
@@ -499,15 +502,17 @@ class DetailService
         $chunks = array_chunk($detailsData, 1000);
 
         foreach ($chunks as $chunk) {
-            Detail::upsert($chunk, ['title', 'category_id'], [
-                'price',
-                'short_description',
-                's_number',
-                'price',
-                'partkey',
-                'analogy_details',
-                'is_parsing_analogy_details'
-            ]);
+            Detail::upsert($chunk, ['title', 'category_id']
+//                , [
+//                'price',
+//                'short_description',
+//                's_number',
+//                'price',
+//                'partkey',
+//                'analogy_details',
+//                'is_parsing_analogy_details'
+//            ]
+            );
         }
 
         $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
@@ -526,7 +531,7 @@ class DetailService
             return 0;
         }, $detailsData);
 
-        return Detail::select([
+        $detailsArr = Detail::select([
             'title',
             'category_id',
             'price',
@@ -535,8 +540,13 @@ class DetailService
             'price',
             'partkey',
             'currency_id',
+            'is_parsing_analogy_details',
+            'analogy_details',
         ])->withoutAppends()->whereIn('category_id', $categoryIds)
-            ->where('is_parsing_analogy_details', false)->get()->toArray();
+            ->where([['is_parsing_analogy_details', false], ['is_manual_added', false]])->get()->toArray();
+        Log::debug('getDetails', $detailsArr);
+
+        return $detailsArr;
     }
 
     protected function fetchAndMergeToDetailAnalogyDetails(array $detailsArray)

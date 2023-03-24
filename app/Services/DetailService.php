@@ -544,7 +544,6 @@ class DetailService
             'analogy_details',
         ])->withoutAppends()->whereIn('category_id', $categoryIds)
             ->where([['is_parsing_analogy_details', false], ['is_manual_added', false]])->get()->toArray();
-        Log::debug('getDetails', $detailsArr);
 
         return $detailsArr;
     }

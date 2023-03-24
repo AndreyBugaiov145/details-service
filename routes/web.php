@@ -138,8 +138,8 @@ Route::get('/job', function () {
 //        ->where('is_parsing_analogy_details', false)->get()->toArray();
 //   dd($d);
     $JobsService = new JobsService();
-//    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
-    $JobsService->addGrabbingAllDetailsJobs();
+    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
+//    $JobsService->addGrabbingAllDetailsJobs();
 
     dd(1);
     $CurrencyService = new CurrencyService();

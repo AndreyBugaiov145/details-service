@@ -42,6 +42,11 @@ class Kernel extends ConsoleKernel
 
         $schedule->call(function () {
             $jobsService = new JobsService();
+            $jobsService->addGrabbingAllDetailsJobs();
+        })->twiceMonthly(10, 20, '22:00');
+
+        $schedule->call(function () {
+            $jobsService = new JobsService();
             $jobsService->createPendingCategoriesOrDetailsJobs();
         })->timezone('Europe/Istanbul')->daily();
 

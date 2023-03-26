@@ -127,6 +127,7 @@ class FetchingService
                 $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
                 $key = $uid . '|' . $proxies[$j];
                 $promises[$key] = $this->getAsyncRequestChildCategory($item['jsn'], $proxies[$j]);
+                $j++;
             }
             $responses = Promise\settle($promises)->wait();
 
@@ -143,7 +144,7 @@ class FetchingService
                 }
             }
             $this->proxyService->incrementFailedProxy($failedProxy);
-            \Log::info('Request sending progress ' . 100 * ($i + 1) / count($chunks));
+            \Log::info('Request sending progress ' . 100 * ($j + 1) / count($chunks));
         }
 
         return $result;
@@ -180,7 +181,7 @@ class FetchingService
                 $uid = $item['partkey'];
                 $key = $uid . '|' . $proxies[$j];
                 $promises[$key] = $this->getAsyncRequestDetailBuyersGuide($item['partkey'], $proxies[$j]);
-                $i++;
+                $j++;
             }
 
             $responses = Promise\settle($promises)->wait();

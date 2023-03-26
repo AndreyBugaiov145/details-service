@@ -67,6 +67,7 @@ class Detail extends Model
         'price_markup',
         'category_id',
         'currency_id',
+        'stock',
         'partkey',
         'is_manual_added',
         'analogy_details',

@@ -40,7 +40,7 @@ class DetailRequest extends FormRequest
             'price_markup' => 'integer',
             'stock' => 'integer',
             'category_id' => 'required|integer',
-            'analogy_details' => 'array',
+            'analogy_details' => 'nullable|array',
         ];
     }
 }

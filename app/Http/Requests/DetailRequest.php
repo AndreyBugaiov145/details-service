@@ -34,14 +34,13 @@ class DetailRequest extends FormRequest
         return [
             'title' => 'required|string',
             's_number' => 'required',
-            'short_description' => 'string',
-            'price' => 'integer',
+            'price' => 'numeric',
             'us_shipping_price' => 'integer',
             'ua_shipping_price' => 'integer',
             'price_markup' => 'integer',
             'stock' => 'integer',
             'category_id' => 'required|integer',
-            'analogy_details' => 'array',
+            'analogy_details' => 'nullable|array',
         ];
     }
 }

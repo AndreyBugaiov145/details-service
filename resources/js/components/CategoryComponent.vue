@@ -7,7 +7,10 @@
             style="cursor:pointer;"
 
 >
-            <b-icon v-if="!showChildCategory || !showChildCategoryDetails" icon="folder-plus" scale="0.7" variant="primary" aria-hidden="true"></b-icon>
+            <div  v-if="isLoading" class="spinner-border loader"  role="status">
+                <span class="sr-only loader"></span>
+            </div>
+            <b-icon v-else-if="!showChildCategory || !showChildCategoryDetails" icon="folder-plus" scale="0.7" variant="primary" aria-hidden="true"></b-icon>
             <b-icon v-else icon="file-earmark-minus" scale="0.7" variant="primary" aria-hidden="true"></b-icon>
             <span  v-html="category.title"></span>
         </h5>
@@ -103,6 +106,7 @@ export default {
             newDetail: {},
             showChildCategory: false,
             showChildCategoryDetails: false,
+            isLoading: false,
         }
     },
     methods: {
@@ -111,7 +115,9 @@ export default {
         },
         async loadCategory() {
             if (!this.categories.length && !this.details.length) {
+                this.isLoading = true
                 let response = await axios.get(`/api/category/children/${this.category.id}`)
+                this.isLoading = false
                 if (response.status) {
                     this.categories = response.data.data
                     if (this.categories.length) {
@@ -130,7 +136,9 @@ export default {
         },
         async loadDetails() {
             if (!this.details.length) {
+                this.isLoading = true
                 let response = await axios.get(`/api/detail/category-details/${this.category.id}`)
+                this.isLoading = false
                 if (response.status) {
                     this.details = response.data.data
                     this.showChildCategory = true

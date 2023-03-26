@@ -1,7 +1,7 @@
 <template>
     <tr>
         <td><span>{{ detail.title }}</span></td>
-        <td><a href="" @click.prevent="loadAnalogyDetail" title="Деталі аналоги">{{ detail.s_number }}</a></td>
+        <td><a href="" @click.prevent="showAnalogyDetail" title="Деталі аналоги">{{ detail.s_number }}</a></td>
         <td class="detail-desc">{{ detail.short_description }}</td>
         <td v-if="detail.isDisabled">Тимчасово недоступно</td>
         <td v-else-if="detail.stock == 0">Під замовлення,час доставки 14 – 25 днів</td>
@@ -21,14 +21,12 @@
                     <th scope="col"></th>
                     <th scope="col"></th>
                     <th scope="col"></th>
-                    <th scope="col"></th>
                     <th scope="col" v-if="authUser"></th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(analogyDetail , key ) in analogyDetails" :key="'analogyDetail'+analogyDetail.id"
+                <tr v-for="(analogyDetail , key) in detail.analogy_details" :key="detail.id +'analogyDetail'+analogyDetail.id"
                 >
-                    <th scope="row">{{ key + 1 }}</th>
                     <td>{{ analogyDetail.brand }}</td>
                     <td v-if="analogyDetail.model">{{ analogyDetail.model }}</td>
                     <td v-if="analogyDetail.years">{{ analogyDetail.years }}</td>
@@ -110,7 +108,7 @@
 import axios from 'axios'
 
 export default {
-    props: ['detail', 'authUser','updateDetails'],
+    props: ['detail', 'authUser', 'updateDetails'],
     data() {
         return {
             analogyDetails: [],
@@ -128,6 +126,12 @@ export default {
                 alert('Something went wrong try again later.')
             }
         },
+        showAnalogyDetail() {
+            this.$bvModal.show('modal' + this.detail.id)
+        },
+        hideAnalogyDetail() {
+            this.$bvModal.hide('modal' + this.detail.id)
+        },
         showDetailModal() {
             this.$root.$emit('bv::show::modal', 'editPrice' + this.detail.id)
             this.newDetail = {...this.detail}
@@ -138,7 +142,6 @@ export default {
 
         showAddAnalogyDetailModal() {
             this.$root.$emit('bv::show::modal', 'addAnalogyDetail' + this.detail.id)
-            this.newDetail = {...this.detail}
         },
         hideAddAnalogyDetailModal() {
             this.$root.$emit('bv::hide::modal', 'addAnalogyDetail' + this.detail.id)
@@ -152,18 +155,34 @@ export default {
             this.updateDetails()
         },
         async addAnalogyDetail() {
-            let response = await axios.post(`/api/analogy-detail`, {
-               ...this.analogyDetail,
-                detail_id: this.detail.id
+            this.newDetail = {...this.detail}
+            this.newDetail.analogy_details.push({...this.analogyDetail, id: Date.now()})
+            let response = await axios.put(`/api/detail/${this.detail.id}`, {
+                'analogy_details':  this.newDetail.analogy_details,
+                'title': this.detail.title,
+                's_number': this.detail.s_number,
+                'category_id': this.detail.category_id,
             })
             alert(response.data.message)
-            this.analogyDetail = {}
+            this.newDetail = {}
+            this.updateDetails()
             this.hideAddAnalogyDetailModal()
-            this.loadAnalogyDetail()
+            this.analogyDetail = {}
         },
         async deleteAnalogyDetail(id) {
-            let response = await axios.delete(`/api/analogy-detail/${id}`)
+            let analogy_details = this.detail.analogy_details.filter((item) => {
+                return item.id != id
+            })
+            console.log('analogy_details', analogy_details)
+            let response = await axios.put(`/api/detail/${this.detail.id}`, {
+                'analogy_details': analogy_details,
+                'title': this.detail.title,
+                's_number': this.detail.s_number,
+                'category_id': this.detail.category_id,
+            })
             alert(response.data.message)
+            this.newDetail = {}
+            this.updateDetails()
         },
         async deleteDetail() {
             let response = await axios.delete(`/api/detail/${this.detail.id}`)

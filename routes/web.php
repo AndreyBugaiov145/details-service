@@ -5,6 +5,9 @@ use App\Http\Controllers\Categories;
 use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
+use App\Jobs\GrabbingDetails;
+use App\Models\Detail;
+use App\Models\ParsingSetting;
 use App\Services\CurrencyService;
 use App\Services\GrabberService;
 use App\Services\JobsService;
@@ -60,12 +63,6 @@ Route::prefix('api')->group(function () {
         Route::put('/{id}', [Details::class, 'update'])->middleware('auth');
         Route::delete('/{id}', [Details::class, 'delete'])->middleware('auth');
     });
-
-    Route::prefix('analogy-detail')->group(function () {
-        Route::post('/', [AnalogueDetails::class, 'create'])->middleware('auth');
-        Route::delete('/{id}', [AnalogueDetails::class, 'delete'])->middleware('auth');
-    });
-
 });
 
 
@@ -93,18 +90,57 @@ Route::prefix('admin')->group(function () {
 
 
 Route::get('/job', function () {
-//    $categories = Category::get();
-//        $category = $categories->first(function ($category)   {
-//            return $category->title == 'AC' && $category->parent_id == null;
+
+
+//dispatch(new GrabbingDetails(ParsingSetting::first()));
+//dd(1);
+
+
+//    $arr = [
+//        ['test'=>'qwe','data'=>1],
+//        ['test'=>'as','data'=>12],
+//        ['test'=>'qwe','data'=>14],
+//        ['test'=>'qwe','data'=>13],
+//    ];
+//
+//    $col = collect($arr);
+////    $col[0]->combine(['srt'=> 'asdasd']) ;
+//    $col = $col->groupBy('test');
+//
+//    $col =  $col->every(function ( $cl,  $key) {
+//        $cl->every(function ( $value,  $key) {
+//            $value['asd'] = 'sdfghjk';
+//            return $value;
 //        });
-//        dd($category);
-//    $rez = Category::upsert([
-//        ['title' => 'AC',  'jsn' => '[asdasd]']
-//    ], ['title', 'parent_id'], ['jsn']);
-//    Log::debug('ASDASD');
-//    dd($rez);
+//        return 1;
+//    });
+////    foreach($col as $c){
+////        $c->every(function ( $value, int $key) {
+////            $value['asd'] = 'sdfghjk';
+////            return $value;
+////        });
+////    }
+//    dd($col);
+
+//    $ProxyService = new ProxyService();
+//
+//    dd($ProxyService->getProxies());
+//   $d  =  Detail::select([
+//        'title',
+//        'category_id',
+//        'price',
+//        'short_description',
+//        's_number',
+//        'price',
+//        'partkey',
+//        'currency_id',
+//    ])->withoutAppends()->whereIn('category_id', [179,177,169,161])
+//        ->where('is_parsing_analogy_details', false)->get()->toArray();
+//   dd($d);
     $JobsService = new JobsService();
-    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
+//    $JobsService->createPendingCategoriesOrDetailsJobs();
+//    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
+    $JobsService->addGrabbingAllDetailsJobs();
 
     dd(1);
     $CurrencyService = new CurrencyService();

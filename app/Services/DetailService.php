@@ -61,19 +61,15 @@ class DetailService
             $this->parsingSetting->category_parsing_at = Carbon::now();
             Log::info('finish fetching categories');
 
-            Log::info('start saving details.', $this->detailsData[0]);
-            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
-            if ($result) {
-                $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
-                $this->parsingSetting->detail_parsing_at = Carbon::now();
+            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            Log::info('Details count' . count($detailsDataArr));
+            $this->saveDetails($detailsDataArr);
 
-                $details = $this->getDetails($this->detailsData);
-                $analogyDetailsData = $this->fetchAnalogyDetails($details);
-                if ($this->saveAnalogyDetails($analogyDetailsData)) {
-                    Detail::whereIn('id', array_unique(array_map(function ($item) {
-                        return $item['detail_id'];
-                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
-                };
+            $detailsDataArrFromDB = $this->getDetails($this->detailsData);
+            if (count($detailsDataArrFromDB)) {
+                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
+                Log::info('start saving details.', $this->detailsData[0]);
+                $this->saveDetails($this->detailsData);
             }
         } catch (\Exception $e) {
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
@@ -109,29 +105,42 @@ class DetailService
         try {
             $this->fetchChildCategories($categoriesData);
             $this->attempts = 0;
-            Log::info('fetched Details Only ', $this->detailsData[0]);
+            Log::info('fetched Details Only', $this->detailsData[0]);
 
-            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
-            if ($result) {
-                $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
-                $this->parsingSetting->detail_parsing_at = Carbon::now();
+            //save details
+//            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
 
-                $details = $this->getDetails($this->detailsData);
-                $analogyDetailsData = $this->fetchAnalogyDetails($details);
-                if ($this->saveAnalogyDetails($analogyDetailsData)) {
-                    Detail::whereIn('id', array_unique(array_map(function ($item) {
-                        return $item['detail_id'];
-                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
-                };
+            $detailsDataArr = $this->getDetails($this->detailsData);
+            Log::info('Details count' . count($detailsDataArr));
+            if (count($detailsDataArr)) {
+                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+                Log::info('start saving details.', $this->detailsData[0]);
+                $this->saveDetails($this->detailsData);
             }
+
+
+//
+//            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
+//            if ($result) {
+//                $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
+//                $this->parsingSetting->detail_parsing_at = Carbon::now();
+//
+//                $details = $this->getDetails($this->detailsData);
+//                $analogyDetailsData = $this->fetchAndMergeToDetailAnalogyDetails($details);
+//                if ($this->saveAnalogyDetails($analogyDetailsData)) {
+//                    Detail::whereIn('id', array_unique(array_map(function ($item) {
+//                        return $item['detail_id'];
+//                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
+//                };
+//            }
         } catch (\Exception $e) {
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_at = Carbon::now();
+            $this->parsingSetting->save();
 
             Log::critical($e->getMessage(), $e->getTrace());
         } finally {
-            $this->parsingSetting->save();
-
             MemoryUtils::loggingUsedMemory();
             $time = round(microtime(true) - $start, 4);
             Log::debug('Время выполнения скрипта: ' . $time . ' сек.');
@@ -141,7 +150,8 @@ class DetailService
                 'parsing_status' => $this->parsingSetting->detail_parsing_status,
                 'request_count' => $this->request_count,
                 'request_time' => $time,
-                'parsing_type' => ParsingStatistic::PARSING_DETAIL
+                'parsing_type' => ParsingStatistic::PARSING_DETAIL,
+                'used_memory' => MemoryUtils::getUsedMemory()
             ]);
         }
 
@@ -386,6 +396,7 @@ class DetailService
         $this->attempts = 0;
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
+
         Log::info('start fetching child categories count' . count($data));
         $result = $this->fetchRequestCategories($data);
 
@@ -487,17 +498,21 @@ class DetailService
 
     protected function saveDetails(array $detailsData)
     {
-        Log::info('Saving details', $detailsData);
+        Log::info('Saving details', $detailsData[0]);
         $chunks = array_chunk($detailsData, 1000);
 
         foreach ($chunks as $chunk) {
-            Detail::upsert($chunk, ['title', 'category_id'], [
-                'price',
-                'short_description',
-                's_number',
-                'price',
-                'partkey'
-            ]);
+            Detail::upsert($chunk, ['title', 'category_id']
+//                , [
+//                'price',
+//                'short_description',
+//                's_number',
+//                'price',
+//                'partkey',
+//                'analogy_details',
+//                'is_parsing_analogy_details'
+//            ]
+            );
         }
 
         $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
@@ -507,7 +522,7 @@ class DetailService
         return true;
     }
 
-    protected function getDetails($detailsData)
+    protected function getDetails($detailsData): array
     {
         $categoryIds = array_map(function ($details) {
             if (isset($details[0])) {
@@ -516,19 +531,65 @@ class DetailService
             return 0;
         }, $detailsData);
 
-        return Detail::whereIn('category_id', $categoryIds)->where('is_parsing_analogy_details', false)->get();
+        $detailsArr = Detail::select([
+            'title',
+            'category_id',
+            'price',
+            'short_description',
+            's_number',
+            'price',
+            'partkey',
+            'currency_id',
+            'is_parsing_analogy_details',
+            'analogy_details',
+        ])->withoutAppends()->whereIn('category_id', $categoryIds)
+            ->where([['is_parsing_analogy_details', false], ['is_manual_added', false]])->get()->toArray();
+
+        return $detailsArr;
     }
 
-    protected function fetchAnalogyDetails($details)
+    protected function fetchAndMergeToDetailAnalogyDetails(array $detailsArray)
     {
-        Log::info('start fetching Analogy Details',[$details->toArray()[0]]);
+        Log::info('start fetching Analogy Details', [$detailsArray[0]]);
         $this->attempts = 0;
-        $analogyDetails = [];
-        $data = $details->toArray();
+        $this->detailsData = [];
+
+        //        grouping details by partkey
+        $details = collect($detailsArray);
+        $dataDetails = $details->groupBy('partkey');
+
+        //        saving existing analog parts by key partkey
+        $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
+            ->where('is_parsing_analogy_details', true)
+            ->get();
+
+        $existsDetails = $existsDetails->groupBy('partkey');
+//        Log::info('grouping details by partkey' . $dataDetails->first()->toArray());
+
+        foreach ($existsDetails as $key => $existsDetail) {
+            if (isset($dataDetails[$key])) {
+                foreach ($dataDetails[$key] as $dataDetail) {
+                    $this->detailsData[] = array_merge($dataDetail, [
+                        'analogy_details' => json_encode($existsDetail[0]->analogy_details),
+                        'is_parsing_analogy_details' => true
+                    ]);
+                }
+                $dataDetails->forget($key);
+            }
+        }
+
+        $data = [];
+        foreach ($dataDetails->toArray() as $groupKey => $group) {
+            $group['partkey'] = $groupKey;
+            $data[$groupKey] = $group;
+
+        }
+
         Log::info('start fetching Analogy Details count' . count($data));
+
         $result = $this->fetchRequestAnalogyDetails($data);
         if ($this->attempts > $this->max_attempts) {
-            throw new GrabberException("Failed fetchAnalogyDetails. attempts > $this->attempts");
+            throw new GrabberException("Failed fetchAndMergeToDetailAnalogyDetails. attempts > $this->attempts");
             Log::critical('Faeil max_attempts', $data);
         }
 
@@ -547,20 +608,23 @@ class DetailService
         foreach ($result['success'] as $key => $responseArr) {
             $html = $this->getBuyersGuiHtmlFromStream($responseArr['value']);
             $item = Arr::first($data, function ($item) use ($key) {
-                return $item['id'] == $key;
+                return $item['partkey'] == $key;
             });
+            unset($item['partkey']);
 
             $parser = new ParserService($html);
+            $analogyDetailsData = $parser->getAnalogyDetails();
 
-            $detailsData = $parser->getAnalogyDetails();
+            foreach ($item as $detail) {
+                $this->detailsData[] = array_merge($detail, [
+                    'analogy_details' => json_encode($analogyDetailsData),
+                    'is_parsing_analogy_details' => true
+                ]);
 
-            foreach ($detailsData as $i => $detail) {
-                $detailsData[$i]['detail_id'] = $item['id'];
             }
-            $analogyDetails[] = $detailsData;
+
         }
 
-        return $this->array2Dto1DAndAddUid($analogyDetails, false);
     }
 
     protected function fetchRequestAnalogyDetails($data)
@@ -573,7 +637,7 @@ class DetailService
         foreach ($result as $key => $responseArr) {
             if ($responseArr['state'] === 'rejected') {
                 $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {
-                    return $item['id'] == $key;
+                    return $item['partkey'] == $key;
                 });
             } else {
                 $successCategoryData[$key] = $responseArr;

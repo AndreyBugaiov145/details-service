@@ -116,11 +116,17 @@ class FetchingService
         $result = [];
         foreach ($chunks as $i => $chunk) {
             $promises = [];
+            $proxies = array_values($this->getProxies(count($chunk)));
+            do {
+                $proxies = array_merge($proxies, $proxies);
+            } while (count($proxies) / count($chunk) < 1);
+
+            $i = 0;
             foreach ($chunk as $item) {
-                $proxy = Arr::random($this->getProxies(count($chunk)));
+//                $proxy = Arr::random($this->getProxies(count($chunk)));
                 $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
                 $key = $uid . '|' . $proxy;
-                $promises[$key] = $this->getAsyncRequestChildCategory($item['jsn'], $proxy);
+                $promises[$key] = $this->getAsyncRequestChildCategory($item['jsn'], $proxies[$i]);
             }
             $responses = Promise\settle($promises)->wait();
 
@@ -163,12 +169,18 @@ class FetchingService
 
         foreach ($chunks as $i => $chunk) {
             $promises = [];
-            foreach ($chunk as $item) {
+            $proxies = array_values($this->getProxies(count($chunk)));
+            do {
+                $proxies = array_merge($proxies, $proxies);
+            } while (count($proxies) / count($chunk) < 1);
 
-                $proxy = Arr::random($this->getProxies(count($chunk)));
+            $i = 0;
+            foreach ($chunk as $item) {
+//                $proxy = Arr::random($this->getProxies(count($chunk)));
                 $uid = $item['partkey'];
                 $key = $uid . '|' . $proxy;
-                $promises[$key] = $this->getAsyncRequestDetailBuyersGuide($item['partkey'], $proxy);
+                $promises[$key] = $this->getAsyncRequestDetailBuyersGuide($item['partkey'], $proxies[$i]);
+                $i++;
             }
 
             $responses = Promise\settle($promises)->wait();

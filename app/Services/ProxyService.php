@@ -20,12 +20,14 @@ class ProxyService
 
     protected $url = 'https://www.rockauto.com/';
 
-//    protected $url = 'http://httpbin.org/ip';
-
     public function __construct()
     {
         $this->httpClient = new \GuzzleHttp\Client([
-            'headers' => ['Connection' => 'close'],
+            'headers' => [
+                'Connection' => 'close',
+                'Host' => 'www.rockauto.com',
+                'Origin' => 'https://www.rockauto.com',
+            ],
             'Connection' => 'close',
             CURLOPT_FORBID_REUSE => true,
             CURLOPT_FRESH_CONNECT => true,

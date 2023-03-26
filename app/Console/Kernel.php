@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Models\Proxy;
 use App\Services\CurrencyService;
 use App\Services\JobsService;
 use Illuminate\Console\Scheduling\Schedule;
@@ -22,6 +23,11 @@ class Kernel extends ConsoleKernel
             $currencyService = new CurrencyService();
             $currencyService->updateUAHRate();
         })->timezone('Europe/Istanbul')->twiceDaily(5, 14);
+
+        // Update UAH currency
+        $schedule->call(function () {
+           Proxy::where('fail_count', '>',13)->delete();
+        })->timezone('Europe/Istanbul')->monthly();
 
         //Grabbing
         $schedule->call(function () {

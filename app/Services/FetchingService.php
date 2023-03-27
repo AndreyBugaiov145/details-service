@@ -144,7 +144,7 @@ class FetchingService
                 }
             }
             $this->proxyService->incrementFailedProxy($failedProxy);
-            \Log::info('Request sending progress ' . 100 * ($j + 1) / count($chunks));
+            \Log::info('Request sending progress ' . 100 * ($i + 1) / count($chunks));
         }
 
         return $result;

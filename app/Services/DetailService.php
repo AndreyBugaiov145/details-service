@@ -105,7 +105,7 @@ class DetailService
         try {
             $this->fetchChildCategories($categoriesData);
             $this->attempts = 0;
-            Log::info('fetched Details Only', $this->detailsData[0]);
+            Log::info('fetched Details Only',optional($this->detailsData[0][0]));
 
             //save details
 //            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
@@ -418,11 +418,15 @@ class DetailService
             Log::info(' fetching child progress ' . 100 * count($result['success']) / $all_count);
         } while (count($result['rejected']));
 
+        Log::info(' start ParserService   '.count($result['success']));
         foreach ($result['success'] as $key => $responseArr) {
             $html = $this->getCategoryHtmlFromStream($responseArr['value']);
             $item = Arr::first($data, function ($item) use ($key) {
                 return $item['uid'] == $key;
             });
+            if (empty($html)){
+                continue;
+            }
             $parser = new ParserService($html);
             if ($parser->isFinalCategory()) {
 

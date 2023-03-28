@@ -14,12 +14,16 @@ use App\Services\JobsService;
 use App\Services\ParserService;
 use App\Services\ProxyScrape;
 use App\Services\ProxyService;
+use App\Utils\ArrayUtils;
+use DiDom\Document;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Route;
+use PHPHtmlParser\Dom;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,8 +94,211 @@ Route::prefix('admin')->group(function () {
 
 
 Route::get('/job', function () {
+    $JobsService = new JobsService();
+    $JobsService->createPendingCategoriesOrDetailsJobs();
+    dd(1);
+    $client = new \GuzzleHttp\Client();
+    $fetchUrl = 'https://www.rockauto.com/catalog/catalogapi.php';
+//    $fetchUrl = 'https://ru.wikipedia.org/wiki/%D0%9A%D1%83%D0%BB%D0%B8%D0%BD%D0%B0%D1%80%D0%B8%D1%8F';
+    $jsns = \App\Models\Category::doesntHave('children')->limit(5)->get()->pluck('jsn');
+//    $rez = [];
+//    $ProxyService = new ProxyService();
+//    $ProxyService->getProxies();
+//    foreach ($jsns as $jsn) {
+//        $rez = $client->get($fetchUrl, [
+//            'form_params' => [
+//                'payload' => json_encode([
+//                    'jsn' => $jsn
+//                ]),
+//                'func' => 'navnode_fetch',
+//                'api_json_request' => 1,
+//            ],
+//            'timeout' => 10,
+//            'connect_timeout' => 15,
+//        ]);
+//    }
+    $rez = $client->post($fetchUrl, [
+        'form_params' => [
+            'payload' => json_encode([
+                'jsn' => $jsns[4]
+            ]),
+            'func' => 'navnode_fetch',
+            'api_json_request' => 1,
+        ],
+        'timeout' => 10,
+        'connect_timeout' => 15,
+    ]);
+//    $rez = $client->get($fetchUrl);
+    $disk = Storage::build([
+        'driver' => 'local',
+        'root' => './',
+    ]);
+    $r = $disk->get('./details.txt');
+    $detailsData = (array)json_decode($r, true);
+    $detailsData2 = array_merge($detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData);
+    $detailsData2 = array_merge($detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2);
+    $detailsData2 = array_merge($detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2);
+    $detailsData2 = array_merge($detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2);
+    $start = microtime(true);
+    $detailsData = [];
+    $data = json_decode( (string)$rez->getBody(),true);
+//    foreach ($rez as $item) {
+    for ($i = 0; $i < 10; $i++) {
 
 
+
+        $html = '';
+        if (isset($data['html_fill_sections']) && is_array($data['html_fill_sections'])) {
+            $html =  ArrayUtils::getFirstItem($data['html_fill_sections']);
+        }
+
+
+//
+//        $document = new Document($data);
+//
+//        $rez = $document->find('.navigation-not-searchable')[0]->text();
+
+
+//        $doc = new DOMDocument();
+//        libxml_use_internal_errors(true);
+//        $doc->loadHTML( $data);
+//        $xpath = new DOMXPath($doc);
+//        $rez = $doc->getElementsByTagName( '//div[@class="hatnote navigation-not-searchable dabhide"]');
+//        dump($rez);
+//        libxml_clear_errors();
+
+
+
+
+//        $dom = new Dom;
+//        $dom->loadStr($data);
+//        $rez = $dom->find('div.navigation-not-searchable')[0]->text;
+//        dump($rez);
+        $parser = new ParserService($html);
+        if ($parser->isFinalCategory()) {
+
+            $detailsData[] = $parser->getDetails();
+
+        }
+//        unset($parser);
+
+    }
+    dump($detailsData);
+    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+    dump(\App\Utils\MemoryUtils::getUsedMemory());
+
+    dd(2);
+    $start = microtime(true);
+    $disk = Storage::build([
+        'driver' => 'local',
+        'root' => './',
+    ]);
+//  $r =  $disk->put('text.txt', json_encode($arr) );
+    $r = $disk->get('./details.txt');
+    $detailsData1 = (array)json_decode($r, true);
+    $detailsData = (array)json_decode($r, true);
+
+    class Det
+    {
+
+        public function test($detailsData)
+        {
+//            $detailsData2 = array_merge($detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData);
+//            $detailsData3 = array_merge($detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2, $detailsData2);
+//            $detailsData3 = array_merge($detailsData3, $detailsData3, $detailsData3, $detailsData3, $detailsData3, $detailsData3, $detailsData3, $detailsData3, $detailsData3, $detailsData3);
+//            $this->d = $detailsData3;
+            dump(\App\Utils\MemoryUtils::getUsedMemory());
+
+        }
+
+        public function fetch($detailsData)
+        {
+            $chunks = array_chunk($detailsData, 1000);
+
+            foreach ($chunks as $chunk) {
+                Detail::upsert($chunk, ['title', 'category_id']);
+            }
+            dump(\App\Utils\MemoryUtils::getUsedMemory());
+        }
+
+        public function fetch2()
+        {
+            $client = new \GuzzleHttp\Client();
+            $proxis = [
+                '183.172.208.225:7891',
+                '183.172.208.225:7891',
+                '183.172.208.225:7891',
+                '183.172.208.225:7891',
+                '183.172.208.225:7891',
+                '183.172.208.225:7891',
+                '183.172.208.225:7891',
+            ];
+            $proxis = array_merge($proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis);
+            $proxis = array_merge($proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis, $proxis);
+            $proxis = array_merge($proxis, $proxis, $proxis, $proxis, $proxis, $proxis,);
+            $proxis = array_merge($proxis, $proxis);
+
+            $proxiesChunks = array_chunk($proxis, 5000);
+            $promises = [];
+            foreach ($proxiesChunks as $proxies) {
+
+                foreach ($proxis as $proxy) {
+                    $promises[] = $client->getAsync(
+                        'https://www.rockauto.com/',
+                        [
+                            'timeout' => 3,
+                            'connect_timeout' => 2,
+                            'proxy' => $proxy,
+                            'headers' => [
+                                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+                            ],
+                        ]);;
+                }
+            }
+            $promise = Promise\settle($promises);
+            $result = $promise->wait();
+
+//            unset($promise);
+            dump(count($result));
+//            unset($result);
+            dump(\App\Utils\MemoryUtils::getUsedMemory());
+        }
+
+    }
+
+    $dest = new Det();
+
+    $detailsData = array_merge($detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData, $detailsData);
+    $dest->test($detailsData);
+    $dest->fetch2();
+    $start = microtime(true);
+    $dest->fetch($detailsData);
+
+
+    //    test($detailsData);
+    $chunks = array_chunk($detailsData, 1000);
+    dump(count($detailsData));;
+//    unset($detailsData2);
+//    unset($detailsData3);
+//    foreach ($chunks as $chunk) {
+//        Detail::upsert($chunk, ['title', 'category_id']);
+//    }
+
+//    foreach ($chunks as $chunk) {
+//        Detail::upsert($chunk, ['title', 'category_id']);
+//    }
+//    $detailsData1 =(array) json_decode($r,true);
+//    $chunks = array_chunk($detailsData1, 3000);
+//    foreach ($chunks as $chunk) {
+//        Detail::upsert($chunk, ['title', 'category_id']);
+//    }
+//    foreach ($chunks as $chunk) {
+//        Detail::upsert($chunk, ['title', 'category_id']);
+//    }
+    dump(\App\Utils\MemoryUtils::getUsedMemory());
+    echo 'Время выполнения скрипта: ' . round(microtime(true) - $start, 4) . ' сек.';
+    dd(1);
+//dd(1);
 //dispatch(new GrabbingDetails(ParsingSetting::first()));
 //dd(1);
 
@@ -138,9 +345,9 @@ Route::get('/job', function () {
 //        ->where('is_parsing_analogy_details', false)->get()->toArray();
 //   dd($d);
     $JobsService = new JobsService();
-//    $JobsService->createPendingCategoriesOrDetailsJobs();
+    $JobsService->createPendingCategoriesOrDetailsJobs();
 //    $JobsService->addGrabbingAllCategoriesAndDetailsJobs();
-    $JobsService->addGrabbingAllDetailsJobs();
+//    $JobsService->addGrabbingAllDetailsJobs();
 
     dd(1);
     $CurrencyService = new CurrencyService();

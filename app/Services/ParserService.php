@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
+use DiDom\Document;
 use PHPHtmlParser\Dom;
 
 class ParserService
 {
     public function __construct($html)
     {
-        $this->dom = new Dom;
-        $this->dom->loadStr($html);
+        $this->dom = new Document($html);
+//        $this->dom = new Dom;
+//        $this->dom->loadStr($html);
     }
 
     public function getAllChildCategoriesWithJns(): array
@@ -24,7 +26,7 @@ class ParserService
                 $jsn['href'] = 'https://www.rockauto.com' . $a->getAttribute('href');
                 $jnsData[] = [
                     'jsn' => $jsn,
-                    'title' => $a->text
+                    'title' => $a->text()
                 ];
             }
         }
@@ -45,20 +47,20 @@ class ParserService
         }
 
         foreach ($tbodiesFiltered as $tbody) {
-            $title1 = $tbody->find('span.listing-final-manufacturer')[0]->text;
-            $title2_elem = $tbody->find('.span-link-underline-remover')[0];
-            $title2 = !is_null($title2_elem) ? $title2_elem->text : '';
-            $title = $title1 . ' ' . $title2;
-            $s_number = $tbody->find('span.listing-final-partnumber')[0]->text;
+            $title1 = $tbody->find('span.listing-final-manufacturer')[0]->text();
+            $title2_elem = optional($tbody->find('.span-link-underline-remover'))[0];
+            $title2 = !is_null($title2_elem) ? $title2_elem->text() : '';
+            $title = mb_substr($title1 . ' ' . $title2, 0, 250);
+            $s_number = $tbody->find('span.listing-final-partnumber')[0]->text();
             $short_description_div = $tbody->find('div.listing-text-row')[0];
             $short_description_a_elems = $short_description_div->firstChild()->find('span');
             $short_description = '';
             foreach ($short_description_a_elems as $span) {
-                $short_description .= $span->text;
+                $short_description .= $span->text();
             }
 
             $result = [];
-            preg_match("~[^\d]*(\d*\.?\d*)[^\d]*~", $tbody->find('span.listing-price')[0]->firstChild()->text, $result);
+            preg_match("~[^\d]*(\d*\.?\d*)[^\d]*~", $tbody->find('span.listing-price')[0]->firstChild()->text(), $result);
             if (isset($result[1])) {
                 $price = $result[1] ?: 0.0;
             } else {
@@ -97,15 +99,15 @@ class ParserService
             if (count($tds) > 2) {
                 $data[] = [
                     'id' => $i + 1,
-                    'brand' => optional($tds[0])->text,
-                    'model' => optional($tds[1])->text,
-                    'years' => optional($tds[2])->text,
+                    'brand' => optional($tds[0])->text(),
+                    'model' => optional($tds[1])->text(),
+                    'years' => optional($tds[2])->text(),
                 ];
             } else {
                 $data[] = [
                     'id' => $i + 1,
-                    'brand' => optional($tds[0])->text,
-                    'years' => optional($tds[1])->text,
+                    'brand' => optional($tds[0])->text(),
+                    'years' => optional($tds[1])->text(),
                     'model' => null,
                 ];
             }

@@ -19,7 +19,6 @@ use phpDocumentor\Reflection\Types\Boolean;
 
 class DetailService
 {
-
     public $grabber;
     protected $currency_id;
     protected $parsingSetting;
@@ -376,6 +375,7 @@ class DetailService
 
     protected function fetchChildCategories(array $data)
     {
+        gc_collect_cycles();
         Log::info('start fetching child categories',$data[0]);
         $this->attempts = 0;
         $newAllCategoriesData = [];
@@ -390,6 +390,7 @@ class DetailService
         }
 
         do {
+            gc_collect_cycles();
             $this->attempts++;
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
@@ -413,17 +414,15 @@ class DetailService
             }
             $parser = new ParserService($html);
             if ($parser->isFinalCategory()) {
-
                 $detailsData = $parser->getDetails();
-
                 foreach ($detailsData as $i => $detail) {
                     $detailsData[$i]['category_id'] = $item['id'];
                     $detailsData[$i]['currency_id'] = $this->currency_id;
                 }
                 $this->detailsData[] = $detailsData;
+                unset($detailsData);
             } else {
                 $categories = $parser->getAllChildCategoriesWithJns();
-                unset($parser);
 
                 $categories = array_map(function ($category) use ($item) {
                     $category['parent_id'] = $item['id'];
@@ -431,8 +430,9 @@ class DetailService
                 }, $categories);
                 $this->saveCategory($categories);
                 $newAllCategoriesData[] = $categories;
+                unset($categories);
             }
-
+            unset($parser);
         }
         Log::info('finish fetching child categories');
         if (count($newAllCategoriesData) > 0) {
@@ -453,7 +453,6 @@ class DetailService
             }
 
             if (isset($item['jsn'])) {
-//                $categoryData['jsn'] = $item['jsn'];
                 $category['jsn'] = json_encode($item['jsn']);
             }
 
@@ -532,14 +531,13 @@ class DetailService
         //        grouping details by partkey
         $details = collect($detailsArray);
         $dataDetails = $details->groupBy('partkey');
-
+        unset($details);
         //        saving existing analog parts by key partkey
         $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
             ->where('is_parsing_analogy_details', true)
             ->get();
 
         $existsDetails = $existsDetails->groupBy('partkey');
-
         foreach ($existsDetails as $key => $existsDetail) {
             if (isset($dataDetails[$key])) {
                 foreach ($dataDetails[$key] as $dataDetail) {
@@ -552,13 +550,14 @@ class DetailService
             }
         }
 
+        unset($existsDetails);
         $data = [];
         foreach ($dataDetails->toArray() as $groupKey => $group) {
             $group['partkey'] = $groupKey;
             $data[$groupKey] = $group;
 
         }
-
+        unset($dataDetails);
         Log::info('start fetching Analogy Details count' . count($data));
 
         $result = $this->fetchRequestAnalogyDetails($data);
@@ -568,6 +567,7 @@ class DetailService
         }
 
         do {
+            gc_collect_cycles();
             $this->attempts++;
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching AnalogyDetails. attempts > $this->attempts");
@@ -596,7 +596,8 @@ class DetailService
                 ]);
 
             }
-
+            unset($parser);
+            unset($analogyDetailsData);
         }
 
     }

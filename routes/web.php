@@ -5,6 +5,7 @@ use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
 use App\Services\JobsService;
+use App\Utils\MemoryUtils;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -78,4 +79,24 @@ Route::prefix('admin')->group(function () {
 Route::get('/job', function () {
     $JobsService = new JobsService();
     $JobsService->createPendingCategoriesOrDetailsJobs();
+});
+
+
+Route::get('/test', function () {
+    class Foo
+    {
+        public $var = '3.14159265359';
+    }
+
+    $baseMemory = memory_get_usage();
+
+    for ( $i = 0; $i <= 100000; $i++ )
+    {
+        $a = new Foo;
+        $a->self = $a;
+        if ( $i % 500 === 0 )
+        {
+            echo MemoryUtils::getUsedMemory(), "\n";
+        }
+    }
 });

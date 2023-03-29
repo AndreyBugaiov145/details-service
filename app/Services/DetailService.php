@@ -115,10 +115,12 @@ class DetailService
             MemoryUtils::monitoringMemory();
 
             //save details
-            $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
+            $allDetailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
+            Log::info('Details count' . count($allDetailsDataArr));
+            $this->saveDetails($allDetailsDataArr);
 
             $detailsDataArr = $this->getDetails($this->detailsData);
-            Log::info('Details count' . count($detailsDataArr));
+            Log::info('Details count need fetch Analogy Details' . count($detailsDataArr));
             if (count($detailsDataArr)) {
                 $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
                 Log::info('start saving details.', $this->detailsData[0]);
@@ -643,8 +645,8 @@ class DetailService
             MemoryUtils::monitoringMemory();
             unset($parser);
             unset($analogyDetailsData);
-            gc_collect_cycles();
         }
+        gc_collect_cycles();
 
     }
 
@@ -656,7 +658,6 @@ class DetailService
         $successCategoryData = [];
         $result = $this->grabber->getAsyncDetailsBuyersGuid($data);
         MemoryUtils::monitoringMemory();
-        gc_collect_cycles();
         foreach ($result as $key => $responseArr) {
             if ($responseArr['state'] === 'rejected') {
                 $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {

@@ -575,7 +575,7 @@ class DetailService
             $rez = $this->fetchRequestAnalogyDetails($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            $all_count = count($details) ?: 1;
+            $all_count = count($data) ?: 1;
             Log::info(' fetching  Analogy Details progress = ' . 100 * count($result['success']) / $all_count);
         } while (count($result['rejected']));
 

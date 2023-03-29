@@ -19,7 +19,11 @@ class FetchingService
     public function __construct()
     {
         $this->httpClient = new \GuzzleHttp\Client([
-            'headers' => ['Connection' => 'close'],
+            'headers' => [
+                'Connection' => 'close',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+                'Origin' => 'https://www.rockauto.com',
+            ],
             'Connection' => 'close',
             CURLOPT_FORBID_REUSE => true,
             CURLOPT_FRESH_CONNECT => true,
@@ -123,7 +127,6 @@ class FetchingService
 
             $j = 0;
             foreach ($chunk as $item) {
-//                $proxy = Arr::random($this->getProxies(count($chunk)));
                 $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
                 $key = $uid . '|' . $proxies[$j];
                 $promises[$key] = $this->getAsyncRequestChildCategory($item['jsn'], $proxies[$j]);
@@ -177,7 +180,6 @@ class FetchingService
 
             $j = 0;
             foreach ($chunk as $item) {
-//                $proxy = Arr::random($this->getProxies(count($chunk)));
                 $uid = $item['partkey'];
                 $key = $uid . '|' . $proxies[$j];
                 $promises[$key] = $this->getAsyncRequestDetailBuyersGuide($item['partkey'], $proxies[$j]);

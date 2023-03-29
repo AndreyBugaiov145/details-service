@@ -105,10 +105,9 @@ class DetailService
         try {
             $this->fetchChildCategories($categoriesData);
             $this->attempts = 0;
-            Log::info('fetched Details Only',optional($this->detailsData[0][0]));
+            Log::info('fetched Details Only',$this->detailsData[0]);
 
             //save details
-//            $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
             $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
 
             $detailsDataArr = $this->getDetails($this->detailsData);
@@ -119,21 +118,6 @@ class DetailService
                 $this->saveDetails($this->detailsData);
             }
 
-
-//
-//            $result = $this->saveDetails($this->array2Dto1DAndAddUid($this->detailsData, false));
-//            if ($result) {
-//                $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
-//                $this->parsingSetting->detail_parsing_at = Carbon::now();
-//
-//                $details = $this->getDetails($this->detailsData);
-//                $analogyDetailsData = $this->fetchAndMergeToDetailAnalogyDetails($details);
-//                if ($this->saveAnalogyDetails($analogyDetailsData)) {
-//                    Detail::whereIn('id', array_unique(array_map(function ($item) {
-//                        return $item['detail_id'];
-//                    }, $analogyDetailsData)))->update(['is_parsing_analogy_details' => true]);
-//                };
-//            }
         } catch (\Exception $e) {
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_at = Carbon::now();
@@ -392,7 +376,7 @@ class DetailService
 
     protected function fetchChildCategories(array $data)
     {
-        Log::info('start fetching child categories', $data[0]);
+        Log::info('start fetching child categories',$data[0]);
         $this->attempts = 0;
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
@@ -495,9 +479,6 @@ class DetailService
 
             $data[$key]['id'] = $category->id;
         }
-//
-//        $category = Category::firstOrCreate($categoryData);
-//        $data[$key]['id'] = $category->id;
     }
 
     protected function saveDetails(array $detailsData)
@@ -506,17 +487,7 @@ class DetailService
         $chunks = array_chunk($detailsData, 1000);
 
         foreach ($chunks as $chunk) {
-            Detail::upsert($chunk, ['title', 'category_id']
-//                , [
-//                'price',
-//                'short_description',
-//                's_number',
-//                'price',
-//                'partkey',
-//                'analogy_details',
-//                'is_parsing_analogy_details'
-//            ]
-            );
+            Detail::upsert($chunk, ['title', 'category_id']);
         }
 
         $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
@@ -568,7 +539,6 @@ class DetailService
             ->get();
 
         $existsDetails = $existsDetails->groupBy('partkey');
-//        Log::info('grouping details by partkey' . $dataDetails->first()->toArray());
 
         foreach ($existsDetails as $key => $existsDetail) {
             if (isset($dataDetails[$key])) {
@@ -593,8 +563,8 @@ class DetailService
 
         $result = $this->fetchRequestAnalogyDetails($data);
         if ($this->attempts > $this->max_attempts) {
-            throw new GrabberException("Failed fetchAndMergeToDetailAnalogyDetails. attempts > $this->attempts");
             Log::critical('Faeil max_attempts', $data);
+            throw new GrabberException("Failed fetchAndMergeToDetailAnalogyDetails. attempts > $this->attempts");
         }
 
         do {
@@ -652,15 +622,5 @@ class DetailService
             'success' => $successCategoryData,
             'rejected' => $rejectedCategoryData,
         ];
-    }
-
-    private function saveAnalogyDetails(array $analogyDetailsData)
-    {
-        $chunks = array_chunk($analogyDetailsData, 1000);
-        foreach ($chunks as $chunk) {
-            DetailAnalogue::upsert($chunk, []);
-        }
-
-        return true;
     }
 }

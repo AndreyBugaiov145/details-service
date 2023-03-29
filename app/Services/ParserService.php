@@ -10,8 +10,7 @@ class ParserService
     public function __construct($html)
     {
         $this->dom = new Document($html);
-//        $this->dom = new Dom;
-//        $this->dom->loadStr($html);
+
     }
 
     public function getAllChildCategoriesWithJns(): array
@@ -21,7 +20,10 @@ class ParserService
         $jnsData = [];
         foreach ($divs as $div) {
             $jsn = (array)json_decode(html_entity_decode($div->firstChild()->getAttribute('value')));
-            $a = $div->find('a.navlabellink')[0];
+            $a = optional( $div->find('a.navlabellink'))[0];
+            if(is_null($a)){
+                continue;
+            }
             if ($a) {
                 $jsn['href'] = 'https://www.rockauto.com' . $a->getAttribute('href');
                 $jnsData[] = [

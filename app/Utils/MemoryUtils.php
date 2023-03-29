@@ -4,6 +4,8 @@ namespace App\Utils;
 
 class MemoryUtils
 {
+    protected static $memory = 0;
+
     static public function convert($size)
     {
         $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
@@ -13,7 +15,8 @@ class MemoryUtils
 
     static public function getUsedMemory()
     {
-        return self::convert(memory_get_usage(true));
+        $memory = self::$memory > memory_get_usage(true) ? self::$memory : memory_get_usage(true);
+        return self::convert($memory);
     }
 
     static public function loggingUsedMemory()
@@ -21,4 +24,10 @@ class MemoryUtils
         \Log::debug('Used memory = ' . self::getUsedMemory());
     }
 
+    static public function monitoringMemory()
+    {
+        if (self::$memory < memory_get_usage(true)) {
+            self::$memory = memory_get_usage(true);
+        }
+    }
 }

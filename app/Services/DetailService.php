@@ -31,6 +31,7 @@ class DetailService
 
     public function __construct(ParsingSetting $parsingSetting)
     {
+        MemoryUtils::monitoringMemory();
         $this->grabber = new FetchingService();
         $this->parsingSetting = $parsingSetting;
         $this->currency_id = Currency::where('code', Currency::UAH_CODE)->first()->id;
@@ -44,15 +45,17 @@ class DetailService
             $this->attempts = 0;
             $mainCategoriesData = $this->fetchMainCategories();
             Log::info('fetched mainCategoriesData', ArrayUtils::getFirstItem($mainCategoriesData));
-
+            MemoryUtils::monitoringMemory();
             $this->attempts = 0;
             $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
             $this->request_count++;
             Log::info('fetched mainYearsCategoriesData', ArrayUtils::getFirstItem($mainYearsCategoriesData));
+            MemoryUtils::monitoringMemory();
             $this->attempts = 0;
             $carModelsCategoriesData = $this->fetchCarModels($mainYearsCategoriesData);
             $this->request_count++;
             Log::info('fetched carModelsCategoriesData', ArrayUtils::getFirstItem($carModelsCategoriesData));
+            MemoryUtils::monitoringMemory();
 
             $this->fetchChildCategories($carModelsCategoriesData);
             $this->attempts = 0;
@@ -60,15 +63,18 @@ class DetailService
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_SUCCESS;
             $this->parsingSetting->category_parsing_at = Carbon::now();
             Log::info('finish fetching categories');
+            MemoryUtils::monitoringMemory();
 
             $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
             Log::info('Details count' . count($detailsDataArr));
             $this->saveDetails($detailsDataArr);
+            MemoryUtils::monitoringMemory();
 
             $detailsDataArrFromDB = $this->getDetails($this->detailsData);
             if (count($detailsDataArrFromDB)) {
                 $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
                 Log::info('start saving details.', $this->detailsData[0]);
+                MemoryUtils::monitoringMemory();
                 $this->saveDetails($this->detailsData);
             }
         } catch (\Exception $e) {
@@ -376,6 +382,7 @@ class DetailService
 
     protected function fetchChildCategories(array $data)
     {
+        MemoryUtils::monitoringMemory();
         Log::info('start fetching child categories',$data[0]);
         $this->attempts = 0;
         $newAllCategoriesData = [];
@@ -390,6 +397,7 @@ class DetailService
         }
 
         do {
+            MemoryUtils::monitoringMemory();
             $this->attempts++;
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
@@ -432,9 +440,11 @@ class DetailService
                 $this->saveCategory($categories);
                 $newAllCategoriesData[] = $categories;
             }
-
+            MemoryUtils::monitoringMemory();
         }
+
         Log::info('finish fetching child categories');
+        MemoryUtils::monitoringMemory();
         if (count($newAllCategoriesData) > 0) {
 
             $this->fetchChildCategories($newAllCategoriesData);
@@ -489,7 +499,7 @@ class DetailService
         foreach ($chunks as $chunk) {
             Detail::upsert($chunk, ['title', 'category_id']);
         }
-
+        MemoryUtils::monitoringMemory();
         $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_SUCCESS;
         $this->parsingSetting->detail_parsing_at = Carbon::now();
         $this->parsingSetting->save();
@@ -528,6 +538,7 @@ class DetailService
         Log::info('start fetching Analogy Details', [$detailsArray[0]]);
         $this->attempts = 0;
         $this->detailsData = [];
+        MemoryUtils::monitoringMemory();
 
         //        grouping details by partkey
         $details = collect($detailsArray);
@@ -568,6 +579,7 @@ class DetailService
         }
 
         do {
+            MemoryUtils::monitoringMemory();
             $this->attempts++;
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching AnalogyDetails. attempts > $this->attempts");

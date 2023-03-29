@@ -4,6 +4,7 @@ use App\Http\Controllers\Categories;
 use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
+use App\Services\DetailService;
 use App\Services\JobsService;
 use App\Utils\MemoryUtils;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,10 @@ Route::get('/job', function () {
 
 
 Route::get('/test', function () {
+
+  $d =  new DetailService(\App\Models\ParsingSetting::first());
+  $d->fetchCategoriesAndDetailsInfo(12,25);
+  dd(9999);
     class Foo
     {
         public $var = '3.14159265359';

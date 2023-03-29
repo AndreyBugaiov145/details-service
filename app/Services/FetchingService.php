@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Utils\MemoryUtils;
 use Arr;
 use GuzzleHttp\Promise;
 
@@ -125,6 +126,9 @@ class FetchingService
                 $proxies = array_merge($proxies, $proxies);
             } while (count($proxies) / count($chunk) < 1);
 
+            MemoryUtils::monitoringMemory();
+            gc_collect_cycles();
+
             $j = 0;
             foreach ($chunk as $item) {
                 $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
@@ -149,6 +153,8 @@ class FetchingService
             $this->proxyService->incrementFailedProxy($failedProxy);
             \Log::info('Request sending progress ' . 100 * ($i + 1) / count($chunks));
         }
+        MemoryUtils::monitoringMemory();
+        gc_collect_cycles();
 
         return $result;
     }
@@ -178,6 +184,9 @@ class FetchingService
                 $proxies = array_merge($proxies, $proxies);
             } while (count($proxies) / count($chunk) < 1);
 
+            MemoryUtils::monitoringMemory();
+            gc_collect_cycles();
+
             $j = 0;
             foreach ($chunk as $item) {
                 $uid = $item['partkey'];
@@ -202,6 +211,8 @@ class FetchingService
             $this->proxyService->incrementFailedProxy($failedProxy);
             \Log::info('Request sending progress ' . 100 * ($i + 1) / count($chunks));
         }
+        MemoryUtils::monitoringMemory();
+        gc_collect_cycles();
 
         return $result;
     }

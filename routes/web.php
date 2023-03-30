@@ -4,6 +4,8 @@ use App\Http\Controllers\Categories;
 use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
+use App\Repositories\CategoryRepository;
+use App\Services\CurrencyService;
 use App\Services\DetailService;
 use App\Services\JobsService;
 use App\Utils\MemoryUtils;
@@ -85,6 +87,13 @@ Route::get('/job', function () {
 
 Route::get('/test', function () {
 
+//   $cat =  CategoryRepository::getLastChildrenCategories('CHEVROLET',2014);
+//    $cat = collect($cat);
+//    dd(\App\Models\Detail::whereIn('category_id',$cat->pluck('id'))->get()->count());
+    dd(\App\Models\Detail::get()->count());
+    $currencyService = new CurrencyService();
+    $currencyService->updateUAHRate();
+    dd(1);
   $d =  new DetailService(\App\Models\ParsingSetting::first());
   $d->fetchCategoriesAndDetailsInfo(12,25);
   dd(9999);

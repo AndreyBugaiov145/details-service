@@ -25,9 +25,10 @@ class CreateDetailsTable extends Migration
             $table->float('price_markup')->default(0);
             $table->integer('stock')->default(0);
             $table->integer('partkey')->nullable();
+            $table->text('jsn')->nullable();
             $table->unsignedBigInteger('category_id')->unsigned();
             $table->unsignedBigInteger('currency_id')->unsigned();
-            $table->unique(['title','category_id']);
+            $table->unique(['category_id', 'partkey']);
             $table->boolean('is_parsing_analogy_details')->default(false);
             $table->text('analogy_details')->nullable();
             $table->boolean('is_manual_added')->default(false);

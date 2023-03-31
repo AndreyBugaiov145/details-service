@@ -401,11 +401,12 @@ class DetailService
     {
         MemoryUtils::monitoringMemory();
         gc_collect_cycles();
+
         $this->attempts = 0;
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
 
-        Log::info('start fetching child categories', $data[0]);
+        Log::info('start fetching child categories', ArrayUtils::getFirstItem($data));
         Log::info('start fetching child categories count' . count($data));
         $result = $this->fetchRequestCategories($data);
 
@@ -445,7 +446,6 @@ class DetailService
                 $detailsData = $parser->getDetails();
                 foreach ($detailsData as $i => $detail) {
                     $detailsData[$i]['category_id'] = $item['id'];
-                    $detailsData[$i]['jsn'] = json_encode($item['jsn']);
                     $detailsData[$i]['currency_id'] = $this->currency_id;
                 }
                 $this->detailsData[] = $detailsData;

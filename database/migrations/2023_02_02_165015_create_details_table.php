@@ -25,7 +25,6 @@ class CreateDetailsTable extends Migration
             $table->float('price_markup')->default(0);
             $table->integer('stock')->default(0);
             $table->integer('partkey')->nullable();
-            $table->text('jsn')->nullable();
             $table->unsignedBigInteger('category_id')->unsigned();
             $table->unsignedBigInteger('currency_id')->unsigned();
             $table->unique(['category_id', 'partkey']);

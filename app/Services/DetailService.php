@@ -39,21 +39,21 @@ class DetailService
     public function fetchCategoriesAndDetailsInfo()
     {
         $start = microtime(true);
-        Log::info('Start fetching');
+        Log::info($this->parsingSetting->brand . '-Start fetching');
         try {
             $this->attempts = 0;
             $mainCategoriesData = $this->fetchMainCategories();
-            Log::info('fetched mainCategoriesData', ArrayUtils::getFirstItem($mainCategoriesData));
+            Log::info($this->parsingSetting->brand . '-fetched mainCategoriesData', ArrayUtils::getFirstItem($mainCategoriesData));
             MemoryUtils::monitoringMemory();
             $this->attempts = 0;
             $mainYearsCategoriesData = $this->fetchMainYearsCategories($mainCategoriesData);
             $this->request_count++;
-            Log::info('fetched mainYearsCategoriesData', ArrayUtils::getFirstItem($mainYearsCategoriesData));
+            Log::info($this->parsingSetting->brand . '-fetched mainYearsCategoriesData', ArrayUtils::getFirstItem($mainYearsCategoriesData));
             MemoryUtils::monitoringMemory();
             $this->attempts = 0;
             $carModelsCategoriesData = $this->fetchCarModels($mainYearsCategoriesData);
             $this->request_count++;
-            Log::info('fetched carModelsCategoriesData', ArrayUtils::getFirstItem($carModelsCategoriesData));
+            Log::info($this->parsingSetting->brand . '-fetched carModelsCategoriesData', ArrayUtils::getFirstItem($carModelsCategoriesData));
             MemoryUtils::monitoringMemory();
 
             $this->fetchChildCategories($carModelsCategoriesData);
@@ -61,18 +61,18 @@ class DetailService
 
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_SUCCESS;
             $this->parsingSetting->category_parsing_at = Carbon::now();
-            Log::info('finish fetching categories');
+            Log::info($this->parsingSetting->brand . '-finish fetching categories');
             MemoryUtils::monitoringMemory();
 
             $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
-            Log::info('Details count' . count($detailsDataArr));
+            Log::info($this->parsingSetting->brand . '-Details count' . count($detailsDataArr));
             $this->saveDetails($detailsDataArr);
             MemoryUtils::monitoringMemory();
 
             $detailsDataArrFromDB = $this->getDetails($this->detailsData);
             if (count($detailsDataArrFromDB)) {
                 $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
-                Log::info('start saving details.', $this->detailsData[0]);
+                Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
                 MemoryUtils::monitoringMemory();
                 $this->saveDetails($this->detailsData);
             }
@@ -82,13 +82,13 @@ class DetailService
             $this->parsingSetting->category_parsing_at = Carbon::now();
             $this->parsingSetting->detail_parsing_at = Carbon::now();
 
-            Log::critical($e->getMessage(), $e->getTrace());
+            Log::critical($this->parsingSetting->brand . '-' . $e->getMessage(), $e->getTrace());
         } finally {
             $this->parsingSetting->save();
 
             MemoryUtils::loggingUsedMemory();
             $time = round(microtime(true) - $start, 4);
-            Log::debug('Время выполнения скрипта: ' . $time . ' сек.');
+            Log::debug($this->parsingSetting->brand . '-Время выполнения скрипта: ' . $time . ' сек.');
 
             ParsingStatistic::create([
                 'parsing_setting_id' => $this->parsingSetting->id,
@@ -100,30 +100,30 @@ class DetailService
             ]);
         }
 
-        Log::info('fetching finish');
+        Log::info($this->parsingSetting->brand . '-fetching finish');
     }
 
     public function fetchDetailsInfo($categoriesData)
     {
         MemoryUtils::monitoringMemory();
         $start = microtime(true);
-        Log::info('Start fetching Details Only');
+        Log::info($this->parsingSetting->brand . '-Start fetching Details Only');
         try {
             $this->fetchChildCategories($categoriesData);
             $this->attempts = 0;
-            Log::info('fetched Details Only', $this->detailsData[0]);
+            Log::info($this->parsingSetting->brand . '-fetched Details Only', $this->detailsData[0]);
             MemoryUtils::monitoringMemory();
 
             //save details
             $allDetailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
-            Log::info('Details count' . count($allDetailsDataArr));
+            Log::info($this->parsingSetting->brand . '-Details count' . count($allDetailsDataArr));
             $this->saveDetails($allDetailsDataArr);
 
             $detailsDataArr = $this->getDetails($this->detailsData);
-            Log::info('Details count need fetch Analogy Details' . count($detailsDataArr));
+            Log::info($this->parsingSetting->brand . '-Details count need fetch Analogy Details' . count($detailsDataArr));
             if (count($detailsDataArr)) {
                 $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
-                Log::info('start saving details.', $this->detailsData[0]);
+                Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
                 $this->saveDetails($this->detailsData);
             }
 
@@ -132,11 +132,11 @@ class DetailService
             $this->parsingSetting->detail_parsing_at = Carbon::now();
             $this->parsingSetting->save();
 
-            Log::critical($e->getMessage(), $e->getTrace());
+            Log::critical($this->parsingSetting->brand . '-' . $e->getMessage(), $e->getTrace());
         } finally {
             MemoryUtils::loggingUsedMemory();
             $time = round(microtime(true) - $start, 4);
-            Log::debug('Время выполнения скрипта: ' . $time . ' сек.');
+            Log::debug($this->parsingSetting->brand . '-Время выполнения скрипта: ' . $time . ' сек.');
 
             ParsingStatistic::create([
                 'parsing_setting_id' => $this->parsingSetting->id,
@@ -148,7 +148,7 @@ class DetailService
             ]);
         }
 
-        Log::info('fetching finish');
+        Log::info($this->parsingSetting->brand . '-fetching finish');
     }
 
     public function array2Dto1DAndAddUid(array $data, bool $addUid = true): array
@@ -181,7 +181,7 @@ class DetailService
 
     protected function fetchMainCategories()
     {
-        Log::info('start fetching main categories');
+        Log::info($this->parsingSetting->brand . '-start fetching main categories');
         do {
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
@@ -199,20 +199,20 @@ class DetailService
         });
         $this->saveCategory($sliceCategoriesData);
 
-        Log::info('main categories data', $sliceCategoriesData);
+        Log::info($this->parsingSetting->brand . '-main categories data', $sliceCategoriesData);
         return $sliceCategoriesData;
     }
 
     protected function fetchMainYearsCategories(array $data)
     {
-        Log::info('start fetching years by main categories.count requests = ' . count($data));
+        Log::info($this->parsingSetting->brand . '-start fetching years by main categories.count requests = ' . count($data));
         $categoriesData = [];
         $result = $this->fetchRequestCategories($data);
-        Log::info('fetching years by main categories result', $result);
+        Log::info($this->parsingSetting->brand . '-fetching years by main categories result', $result);
 
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
-            Log::critical('Faeil max_attempts', $data);
+            Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
         }
         do {
             $this->attempts++;
@@ -222,7 +222,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching Main Years rejected count' . count($result['rejected']));
+            Log::info($this->parsingSetting->brand . '- fetching Main Years rejected count' . count($result['rejected']));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -240,23 +240,23 @@ class DetailService
                 $categoriesData[] = $sliceCategoriesData;
             }
         }
-        Log::info('finish fetching years by main categories', $categoriesData);
+        Log::info($this->parsingSetting->brand . '-finish fetching years by main categories', $categoriesData);
 
         return $categoriesData;
     }
 
     protected function fetchCarModels(array $data)
     {
-        Log::info('start fetching  Car Models categories.count requests = ' . count($data));
+        Log::info($this->parsingSetting->brand . '-start fetching  Car Models categories.count requests = ' . count($data));
         $data = $this->array2Dto1DAndAddUid($data);
         $categoriesData = [];
 
         $result = $this->fetchRequestCategories($data);
-        Log::info('start fetching  Car Models categories result', $result);
+        Log::info($this->parsingSetting->brand . '-start fetching  Car Models categories result', $result);
 
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
-            Log::critical('Faeil max_attempts', $data);
+            Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
         }
 
         do {
@@ -267,7 +267,7 @@ class DetailService
             $rez = $this->fetchRequestCategories($result['rejected']);
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
-            Log::info(' fetching Car Models categories rejected count' . count($result['rejected']));
+            Log::info($this->parsingSetting->brand . '- fetching Car Models categories rejected count' . count($result['rejected']));
         } while (count($result['rejected']));
 
         foreach ($result['success'] as $key => $responseArr) {
@@ -286,7 +286,7 @@ class DetailService
             }
         }
 
-        Log::info('finish fetching years by main categories', $categoriesData);
+        Log::info($this->parsingSetting->brand . '-finish fetching years by main categories', $categoriesData);
 
         return $categoriesData;
     }
@@ -406,12 +406,12 @@ class DetailService
         $newAllCategoriesData = [];
         $data = $this->array2Dto1DAndAddUid($data);
 
-        Log::info('start fetching child categories', ArrayUtils::getFirstItem($data));
-        Log::info('start fetching child categories count' . count($data));
+        Log::info($this->parsingSetting->brand . '-start fetching child categories', ArrayUtils::getFirstItem($data));
+        Log::info($this->parsingSetting->brand . '-start fetching child categories count' . count($data));
         $result = $this->fetchRequestCategories($data);
 
         if ($this->attempts > $this->max_attempts) {
-            Log::critical('Faeil max_attempts', $data);
+            Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
         }
 
@@ -427,12 +427,12 @@ class DetailService
             $result['success'] = array_replace($result['success'], $rez['success']);
 
             $all_count = count($data) ?: 1;
-            Log::info(' fetching child progress ' . 100 * count($result['success']) / $all_count);
+            Log::info($this->parsingSetting->brand . '- fetching child progress ' . 100 * count($result['success']) / $all_count);
             MemoryUtils::monitoringMemory();
             gc_collect_cycles();
         } while (count($result['rejected']));
 
-        Log::info(' start ParserService   ' . count($result['success']));
+        Log::info($this->parsingSetting->brand . '- start ParserService   ' . count($result['success']));
         foreach ($result['success'] as $key => $responseArr) {
             $html = $this->getCategoryHtmlFromStream($responseArr['value']);
             $item = Arr::first($data, function ($item) use ($key) {
@@ -466,7 +466,7 @@ class DetailService
             gc_collect_cycles();
         }
 
-        Log::info('finish fetching child categories');
+        Log::info($this->parsingSetting->brand . '-finish fetching child categories');
         MemoryUtils::monitoringMemory();
         if (count($newAllCategoriesData) > 0) {
 
@@ -521,7 +521,7 @@ class DetailService
     protected function saveDetails(array $detailsData)
     {
         MemoryUtils::monitoringMemory();
-        Log::info('Saving details', $detailsData[0]);
+        Log::info($this->parsingSetting->brand . '-Saving details', $detailsData[0]);
         $chunks = array_chunk($detailsData, 1000);
 
         foreach ($chunks as $chunk) {
@@ -567,7 +567,7 @@ class DetailService
 
     protected function fetchAndMergeToDetailAnalogyDetails(array $detailsArray)
     {
-        Log::info('start fetching Analogy Details', [$detailsArray[0]]);
+        Log::info($this->parsingSetting->brand . '-start fetching Analogy Details', [$detailsArray[0]]);
         $this->attempts = 0;
         $this->detailsData = [];
         MemoryUtils::monitoringMemory();
@@ -603,11 +603,11 @@ class DetailService
         }
         MemoryUtils::monitoringMemory();
         unset($dataDetails);
-        Log::info('start fetching Analogy Details count' . count($data));
+        Log::info($this->parsingSetting->brand . '-start fetching Analogy Details count' . count($data));
 
         $result = $this->fetchRequestAnalogyDetails($data);
         if ($this->attempts > $this->max_attempts) {
-            Log::critical('Faeil max_attempts', $data);
+            Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
             throw new GrabberException("Failed fetchAndMergeToDetailAnalogyDetails. attempts > $this->attempts");
         }
 
@@ -622,7 +622,7 @@ class DetailService
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
             $all_count = count($data) ?: 1;
-            Log::info(' fetching  Analogy Details progress = ' . 100 * count($result['success']) / $all_count);
+            Log::info($this->parsingSetting->brand . '- fetching  Analogy Details progress = ' . 100 * count($result['success']) / $all_count);
             MemoryUtils::monitoringMemory();
         } while (count($result['rejected']));
 

@@ -429,6 +429,7 @@ class DetailService
             $all_count = count($data) ?: 1;
             Log::info($this->parsingSetting->brand . '- fetching child progress ' . 100 * count($result['success']) / $all_count);
             MemoryUtils::monitoringMemory();
+            unset($rez);
             gc_collect_cycles();
         } while (count($result['rejected']));
 
@@ -463,6 +464,7 @@ class DetailService
             }
             MemoryUtils::monitoringMemory();
             unset($parser);
+            unset($result);
             gc_collect_cycles();
         }
 

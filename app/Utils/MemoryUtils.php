@@ -15,7 +15,7 @@ class MemoryUtils
 
     static public function getUsedMemory()
     {
-        $memory = self::$memory > memory_get_usage(true) ? self::$memory : memory_get_usage(true);
+        $memory = self::$memory > memory_get_usage() ? self::$memory : memory_get_usage();
         return self::convert($memory);
     }
 
@@ -26,8 +26,8 @@ class MemoryUtils
 
     static public function monitoringMemory()
     {
-        if (self::$memory < memory_get_usage(true)) {
-            self::$memory = memory_get_usage(true);
+        if (self::$memory < memory_get_usage()) {
+            self::$memory = memory_get_usage();
         }
     }
 }

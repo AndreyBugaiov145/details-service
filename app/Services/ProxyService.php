@@ -22,16 +22,30 @@ class ProxyService
 
     public function __construct()
     {
-        $this->httpClient = new \GuzzleHttp\Client([
+        $this->httpClient = $this->createHttpClient();
+    }
+
+    protected function createHttpClient()
+    {
+        return new \GuzzleHttp\Client([
             'headers' => [
                 'Connection' => 'close',
-                'Host' => 'www.rockauto.com',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
                 'Origin' => 'https://www.rockauto.com',
             ],
             'Connection' => 'close',
             CURLOPT_FORBID_REUSE => true,
             CURLOPT_FRESH_CONNECT => true,
         ]);
+    }
+
+    protected function getHttpClient()
+    {
+        if (!$this->httpClient) {
+            $this->httpClient = $this->createHttpClient();
+        }
+
+        return $this->httpClient;
     }
 
     public function fetchAndSaveProxies()
@@ -58,7 +72,7 @@ class ProxyService
             if ($proxy == '') {
                 continue;
             }
-            $promises[$proxy] = $this->httpClient->getAsync(
+            $promises[$proxy] = $this->getHttpClient()->getAsync(
                 $this->url,
                 [
                     'timeout' => $this->timeout,
@@ -77,6 +91,9 @@ class ProxyService
                     ]
                 ]);
         }
+        unset($this->httpClient);
+        $this->httpClient = false;
+        gc_collect_cycles();
 
         return $promises;
     }

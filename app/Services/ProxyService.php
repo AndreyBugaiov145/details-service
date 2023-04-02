@@ -51,8 +51,7 @@ class ProxyService
     public function fetchAndSaveProxies()
     {
         $proxies = $this->fetchProxy();
-        $requests = $this->createAsyncRequestsArr($proxies);
-        $result = $this->checkProxyList($requests);
+        $result = $this->checkProxyList($proxies);
         $this->saveProxies($result['success']);
 
         return $result['success'];
@@ -68,6 +67,7 @@ class ProxyService
     protected function createAsyncRequestsArr($proxies)
     {
         $promises = [];
+
         foreach ($proxies as $proxy) {
             if ($proxy == '') {
                 continue;
@@ -91,28 +91,36 @@ class ProxyService
                     ]
                 ]);
         }
-        unset($this->httpClient);
-        $this->httpClient = false;
-        gc_collect_cycles();
 
         return $promises;
     }
 
-    protected function checkProxyList(array $requests)
+    protected function checkProxyList(array $pr, $chunkCount = 1200)
     {
         $success = [];
         $failed = [];
-
+        $chunks = array_chunk($pr, $chunkCount, true);
         try {
-            $promise = Promise\settle($requests);
-            $results = $promise->wait();
+//
+            foreach ($chunks as $i => $chunk) {
+                $requests = $this->createAsyncRequestsArr($chunk);
+                $promise = Promise\settle($requests);
+                $results = $promise->wait();
 
-            foreach ($results as $key => $r) {
-                if ($r['state'] != 'rejected') {
-                    $success[] = $key;
-                } else {
-                    $failed[] = $key;
+                foreach ($results as $key => $r) {
+                    if ($r['state'] != 'rejected') {
+                        $success[] = $key;
+                    } else {
+                        $failed[] = $key;
+                    }
                 }
+                unset($results);
+                unset($promise);
+                unset($requests);
+                unset($requests);
+                unset($this->httpClient);
+                $this->httpClient = false;
+                gc_collect_cycles();
             }
         } catch (\GuzzleHttp\Exception\ConnectException $e) {
             \Log::critical($e->getMessage(), $e->getRequest());
@@ -136,8 +144,8 @@ class ProxyService
     protected function getCheckredProxyFromDB()
     {
         $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
-        $requests = $this->createAsyncRequestsArr($proxies);
-        return $this->checkProxyList($requests);
+//        $requests = $this->createAsyncRequestsArr($proxies);
+        return $this->checkProxyList($proxies, 2000);
     }
 
     public function getWorkingProxyAndUpdateFailedFromDB()
@@ -155,11 +163,11 @@ class ProxyService
 
     public function getProxies()
     {
+        Log::info('getProxies');
         $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        Log::info('getProxies');
-        return array_unique(array_merge($proxiesArr1, $proxiesArr2));
+        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
     }
 
 

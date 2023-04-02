@@ -8,6 +8,7 @@ use App\Repositories\CategoryRepository;
 use App\Services\CurrencyService;
 use App\Services\DetailService;
 use App\Services\JobsService;
+use App\Services\ProxyService;
 use App\Utils\MemoryUtils;
 use Illuminate\Support\Facades\Route;
 
@@ -86,7 +87,11 @@ Route::get('/job', function () {
 
 
 Route::get('/test', function () {
-
+    $cat = CategoryRepository::getLastChildrenCategories('FORD',2010);
+    $cat =collect($cat);
+    $cat = $cat->pluck('id') ->toArray();
+    $ProxyService = new ProxyService();
+    dd($cat);
 //   $cat =  CategoryRepository::getLastChildrenCategories('CHEVROLET',2014);
 //    $cat = collect($cat);
 //    dd(\App\Models\Detail::whereIn('category_id',$cat->pluck('id'))->get()->count());

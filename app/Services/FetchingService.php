@@ -177,6 +177,10 @@ class FetchingService
             $this->httpClient = false;
             gc_collect_cycles();
         }
+        unset($chunks);
+        unset($this->httpClient);
+        $this->httpClient = false;
+        gc_collect_cycles();
         MemoryUtils::monitoringMemory();
         gc_collect_cycles();
 

@@ -45,6 +45,8 @@ class GrabbingDetails implements ShouldQueue
     {
         $grabberService = new GrabberService();
         $grabberService->grabbingDetailsPlanned($this->parserSetting);
+        unset($grabberService);
+        gc_collect_cycles();
     }
 
     /**

@@ -15,17 +15,22 @@ class ProxyService
         "anonymity" => "all"
     ];
 
-    protected $connect_timeout = 45;
-    protected $timeout = 30;
+    protected $connect_timeout = 25;
+    protected $timeout = 14;
 
-    protected $url = 'https://www.rockauto.com/';
+    protected $url = 'https://www.rockauto.com/catalog/catalogapi.php';
 
     public function __construct()
     {
-        $this->httpClient = new \GuzzleHttp\Client([
+        $this->httpClient = $this->createHttpClient();
+    }
+
+    protected function createHttpClient()
+    {
+        return new \GuzzleHttp\Client([
             'headers' => [
                 'Connection' => 'close',
-                'Host' => 'www.rockauto.com',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
                 'Origin' => 'https://www.rockauto.com',
             ],
             'Connection' => 'close',
@@ -34,12 +39,20 @@ class ProxyService
         ]);
     }
 
+    protected function getHttpClient()
+    {
+        if (!$this->httpClient) {
+            $this->httpClient = $this->createHttpClient();
+        }
+
+        return $this->httpClient;
+    }
+
     public function fetchAndSaveProxies()
     {
         $proxies = $this->fetchProxy();
-        $requests = $this->createAsyncRequestsArr($proxies);
-        $result = $this->checkProxyList($requests);
-        $this->saveProxies($result['success']);
+        $result = $this->checkProxyList($proxies);
+//        $this->saveProxies($result['success']);
 
         return $result['success'];
     }
@@ -54,16 +67,22 @@ class ProxyService
     protected function createAsyncRequestsArr($proxies)
     {
         $promises = [];
+
         foreach ($proxies as $proxy) {
             if ($proxy == '') {
                 continue;
             }
-            $promises[$proxy] = $this->httpClient->getAsync(
+            $promises[$proxy] = $this->getHttpClient()->postAsync(
                 $this->url,
                 [
                     'timeout' => $this->timeout,
                     'connect_timeout' => $this->connect_timeout,
                     'proxy' => $proxy,
+                    'form_params' => [
+                        'func' => 'getbuyersguide',
+                        'scbeenloaded' => true,
+                        'api_json_request' => 1,
+                    ],
                     'headers' => [
 
                         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
@@ -81,21 +100,32 @@ class ProxyService
         return $promises;
     }
 
-    protected function checkProxyList(array $requests)
+    protected function checkProxyList(array $pr, $chunkCount = 1200)
     {
         $success = [];
         $failed = [];
-
+        $chunks = array_chunk($pr, $chunkCount, true);
         try {
-            $promise = Promise\settle($requests);
-            $results = $promise->wait();
+//
+            foreach ($chunks as $i => $chunk) {
+                $requests = $this->createAsyncRequestsArr($chunk);
+                $promise = Promise\settle($requests);
+                $results = $promise->wait();
 
-            foreach ($results as $key => $r) {
-                if ($r['state'] != 'rejected') {
-                    $success[] = $key;
-                } else {
-                    $failed[] = $key;
+                foreach ($results as $key => $r) {
+                    if ($r['state'] != 'rejected') {
+                        $success[] = $key;
+                    } else {
+                        $failed[] = $key;
+                    }
                 }
+                unset($results);
+                unset($promise);
+                unset($requests);
+                unset($requests);
+                unset($this->httpClient);
+                $this->httpClient = false;
+                gc_collect_cycles();
             }
         } catch (\GuzzleHttp\Exception\ConnectException $e) {
             \Log::critical($e->getMessage(), $e->getRequest());
@@ -119,8 +149,8 @@ class ProxyService
     protected function getCheckredProxyFromDB()
     {
         $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
-        $requests = $this->createAsyncRequestsArr($proxies);
-        return $this->checkProxyList($requests);
+//        $requests = $this->createAsyncRequestsArr($proxies);
+        return $this->checkProxyList($proxies, 2000);
     }
 
     public function getWorkingProxyAndUpdateFailedFromDB()
@@ -138,11 +168,11 @@ class ProxyService
 
     public function getProxies()
     {
-        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        Log::info('getProxies');
+//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        Log::info('getProxies');
-        return array_unique(array_merge($proxiesArr1, $proxiesArr2));
+        return array_unique(array_merge([], $proxiesArr2));
     }
 
 

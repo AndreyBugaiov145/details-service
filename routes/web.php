@@ -8,6 +8,7 @@ use App\Repositories\CategoryRepository;
 use App\Services\CurrencyService;
 use App\Services\DetailService;
 use App\Services\JobsService;
+use App\Services\ProxyService;
 use App\Utils\MemoryUtils;
 use Illuminate\Support\Facades\Route;
 
@@ -82,35 +83,6 @@ Route::prefix('admin')->group(function () {
 Route::get('/job', function () {
     $JobsService = new JobsService();
     $JobsService->createPendingCategoriesOrDetailsJobs();
-});
+})->middleware('auth');
 
 
-Route::get('/test', function () {
-
-//   $cat =  CategoryRepository::getLastChildrenCategories('CHEVROLET',2014);
-//    $cat = collect($cat);
-//    dd(\App\Models\Detail::whereIn('category_id',$cat->pluck('id'))->get()->count());
-    dd(\App\Models\Detail::get()->count());
-    $currencyService = new CurrencyService();
-    $currencyService->updateUAHRate();
-    dd(1);
-  $d =  new DetailService(\App\Models\ParsingSetting::first());
-  $d->fetchCategoriesAndDetailsInfo(12,25);
-  dd(9999);
-    class Foo
-    {
-        public $var = '3.14159265359';
-    }
-
-    $baseMemory = memory_get_usage();
-
-    for ( $i = 0; $i <= 100000; $i++ )
-    {
-        $a = new Foo;
-        $a->self = $a;
-        if ( $i % 500 === 0 )
-        {
-            echo MemoryUtils::getUsedMemory(), "\n";
-        }
-    }
-});

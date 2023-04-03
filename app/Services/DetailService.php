@@ -27,6 +27,7 @@ class DetailService
     protected $i = 0;
     public $request_count = 0;
     public $detailsData = [];
+    public $categoriesData = [];
 
     public function __construct(ParsingSetting $parsingSetting)
     {
@@ -214,7 +215,8 @@ class DetailService
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
             Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
         }
-        do {
+
+        while (count($result['rejected'])) {
             $this->attempts++;
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
@@ -223,7 +225,7 @@ class DetailService
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
             Log::info($this->parsingSetting->brand . '- fetching Main Years rejected count' . count($result['rejected']));
-        } while (count($result['rejected']));
+        }
 
         foreach ($result['success'] as $key => $responseArr) {
             if ($responseArr['state'] === 'rejected') {
@@ -259,7 +261,7 @@ class DetailService
             Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
         }
 
-        do {
+        while (count($result['rejected'])) {
             $this->attempts++;
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
@@ -268,7 +270,7 @@ class DetailService
             $result['rejected'] = $rez['rejected'];
             $result['success'] = array_replace($result['success'], $rez['success']);
             Log::info($this->parsingSetting->brand . '- fetching Car Models categories rejected count' . count($result['rejected']));
-        } while (count($result['rejected']));
+        };
 
         foreach ($result['success'] as $key => $responseArr) {
             if ($responseArr['state'] === 'rejected') {
@@ -397,42 +399,75 @@ class DetailService
         ];
     }
 
-    protected function fetchChildCategories(array $data)
+    protected function fetchChildCategories(array $dataArr)
     {
         MemoryUtils::monitoringMemory();
         gc_collect_cycles();
 
-        $this->attempts = 0;
-        $newAllCategoriesData = [];
-        $data = $this->array2Dto1DAndAddUid($data);
+        $this->categoriesData = [];
+        $dataAll = $this->array2Dto1DAndAddUid($dataArr);
+        Log::info($this->parsingSetting->brand . '-start fetching child categories count = ' . count($dataAll));
 
-        Log::info($this->parsingSetting->brand . '-start fetching child categories', ArrayUtils::getFirstItem($data));
-        Log::info($this->parsingSetting->brand . '-start fetching child categories count' . count($data));
-        $result = $this->fetchRequestCategories($data);
+        $chunks = array_chunk($dataAll, 3000);
+        foreach ($chunks as $i => $data) {
+            $this->attempts = 0;
+            $successRequestCount = 0;
 
-        if ($this->attempts > $this->max_attempts) {
-            Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
-            throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
+            Log::info($this->parsingSetting->brand . '-start fetching child categories', ArrayUtils::getFirstItem($data));
+            Log::info($this->parsingSetting->brand . '-start fetching child categories chunk count = ' . count($data));
+
+            $result = $this->fetchRequestCategories($data);
+            if (count($result['success'])) {
+                $successRequestCount += count($result['success']);
+                $this->getChildCategoriesFromStreamResponses($result, $data);
+            }
+            unset($result['success']);
+            gc_collect_cycles();
+
+            if ($this->attempts > $this->max_attempts) {
+                Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
+                throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
+            }
+
+            while (count($result['rejected'])) {
+                MemoryUtils::monitoringMemory();
+                gc_collect_cycles();
+                $this->attempts++;
+
+                if ($this->attempts > $this->max_attempts) {
+                    throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
+                }
+
+                $rez = $this->fetchRequestCategories($result['rejected']);
+                $result['rejected'] = $rez['rejected'];
+                $result['success'] = $rez['success'];
+                if (count($result['success'])) {
+                    $successRequestCount += count($result['success']);
+                    $this->getChildCategoriesFromStreamResponses($result, $data);
+                }
+                $chunk_count = count($data) ?: 1;
+                Log::info($this->parsingSetting->brand . '- fetching child categories progress chunk = ' . 100 * $successRequestCount / $chunk_count);
+
+                MemoryUtils::monitoringMemory();
+                unset($rez);
+                unset($result['success']);
+                gc_collect_cycles();
+            };
+            $all_count = count($chunks) ?: 1;
+            Log::info($this->parsingSetting->brand . '- fetching categories child progress = ' . 100 * ($i + 1) / $all_count);
         }
 
-        do {
-            MemoryUtils::monitoringMemory();
-            gc_collect_cycles();
-            $this->attempts++;
-            if ($this->attempts > $this->max_attempts) {
-                throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
-            }
-            $rez = $this->fetchRequestCategories($result['rejected']);
-            $result['rejected'] = $rez['rejected'];
-            $result['success'] = array_replace($result['success'], $rez['success']);
+        gc_collect_cycles();
+        Log::info($this->parsingSetting->brand . '-finish fetching child categories');
+        MemoryUtils::monitoringMemory();
 
-            $all_count = count($data) ?: 1;
-            Log::info($this->parsingSetting->brand . '- fetching child progress ' . 100 * count($result['success']) / $all_count);
-            MemoryUtils::monitoringMemory();
-            unset($rez);
-            gc_collect_cycles();
-        } while (count($result['rejected']));
+        if (count($this->categoriesData) > 0) {
+            $this->fetchChildCategories($this->categoriesData);
+        }
+    }
 
+    protected function getChildCategoriesFromStreamResponses($result, $data)
+    {
         Log::info($this->parsingSetting->brand . '- start ParserService   ' . count($result['success']));
         foreach ($result['success'] as $key => $responseArr) {
             $html = $this->getCategoryHtmlFromStream($responseArr['value']);
@@ -459,21 +494,19 @@ class DetailService
                     return $category;
                 }, $categories);
                 $this->saveCategory($categories);
-                $newAllCategoriesData[] = $categories;
+                $this->categoriesData[] = $categories;
                 unset($categories);
             }
             MemoryUtils::monitoringMemory();
             unset($parser);
-            unset($result);
+            unset($html);
+            unset($item);
             gc_collect_cycles();
         }
-
-        Log::info($this->parsingSetting->brand . '-finish fetching child categories');
         MemoryUtils::monitoringMemory();
-        if (count($newAllCategoriesData) > 0) {
-
-            $this->fetchChildCategories($newAllCategoriesData);
-        }
+        unset($parser);
+        unset($result);
+        gc_collect_cycles();
     }
 
     protected function saveCategory(&$data)
@@ -613,7 +646,7 @@ class DetailService
             throw new GrabberException("Failed fetchAndMergeToDetailAnalogyDetails. attempts > $this->attempts");
         }
 
-        do {
+        while (count($result['rejected'])) {
             MemoryUtils::monitoringMemory();
             gc_collect_cycles();
             $this->attempts++;
@@ -626,7 +659,7 @@ class DetailService
             $all_count = count($data) ?: 1;
             Log::info($this->parsingSetting->brand . '- fetching  Analogy Details progress = ' . 100 * count($result['success']) / $all_count);
             MemoryUtils::monitoringMemory();
-        } while (count($result['rejected']));
+        }
 
         foreach ($result['success'] as $key => $responseArr) {
             $html = $this->getBuyersGuiHtmlFromStream($responseArr['value']);

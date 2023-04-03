@@ -15,10 +15,10 @@ class ProxyService
         "anonymity" => "all"
     ];
 
-    protected $connect_timeout = 45;
-    protected $timeout = 30;
+    protected $connect_timeout = 25;
+    protected $timeout = 14;
 
-    protected $url = 'https://www.rockauto.com/';
+    protected $url = 'https://www.rockauto.com/catalog/catalogapi.php';
 
     public function __construct()
     {
@@ -52,7 +52,7 @@ class ProxyService
     {
         $proxies = $this->fetchProxy();
         $result = $this->checkProxyList($proxies);
-        $this->saveProxies($result['success']);
+//        $this->saveProxies($result['success']);
 
         return $result['success'];
     }
@@ -72,12 +72,17 @@ class ProxyService
             if ($proxy == '') {
                 continue;
             }
-            $promises[$proxy] = $this->getHttpClient()->getAsync(
+            $promises[$proxy] = $this->getHttpClient()->postAsync(
                 $this->url,
                 [
                     'timeout' => $this->timeout,
                     'connect_timeout' => $this->connect_timeout,
                     'proxy' => $proxy,
+                    'form_params' => [
+                        'func' => 'getbuyersguide',
+                        'scbeenloaded' => true,
+                        'api_json_request' => 1,
+                    ],
                     'headers' => [
 
                         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
@@ -164,10 +169,10 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
+        return array_unique(array_merge([], $proxiesArr2));
     }
 
 

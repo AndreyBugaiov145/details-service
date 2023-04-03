@@ -52,7 +52,7 @@ class ProxyService
     {
         $proxies = $this->fetchProxy();
         $result = $this->checkProxyList($proxies);
-//        $this->saveProxies($result['success']);
+        $this->saveProxies($result['success']);
 
         return $result['success'];
     }
@@ -106,7 +106,6 @@ class ProxyService
         $failed = [];
         $chunks = array_chunk($pr, $chunkCount, true);
         try {
-//
             foreach ($chunks as $i => $chunk) {
                 $requests = $this->createAsyncRequestsArr($chunk);
                 $promise = Promise\settle($requests);
@@ -169,10 +168,10 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        return array_unique(array_merge([], $proxiesArr2));
+        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
     }
 
 

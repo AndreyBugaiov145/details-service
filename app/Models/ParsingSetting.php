@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * App\Models\ParsingSetting
@@ -29,6 +30,7 @@ use Illuminate\Support\Carbon;
 class ParsingSetting extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     const STATUS_PENDING = 'pending';
     const STATUS_IN_PROGRESS = 'in_progress';

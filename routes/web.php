@@ -10,6 +10,7 @@ use App\Services\DetailService;
 use App\Services\JobsService;
 use App\Services\ProxyService;
 use App\Utils\MemoryUtils;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -85,4 +86,22 @@ Route::get('/job', function () {
     $JobsService->createPendingCategoriesOrDetailsJobs();
 })->middleware('auth');
 
+Route::get('/pr', function () {
+//    $url = "https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&page=2";
+//
+//    $client = new Client();
+//
+//   $response =  $client->get($url);
+//   $rez = (string) $response->getBody();
+//   $rez =json_decode($rez);
+//    $proxies = [];
+//    foreach ($rez->data as $item) {
+//        $proxies[]= "$item->ip:$item->port";
+//    }
+    $proxies = [];
+    $ProxyService = new ProxyService;
+    $result = $ProxyService->getProxies();
+   dd( $result);
+
+})->middleware('auth');
 

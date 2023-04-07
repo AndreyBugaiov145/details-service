@@ -8,7 +8,7 @@ use Log;
 class ProxyService
 {
     protected $opt1 = [
-        "timeout" => 3500,
+        "timeout" => 8000,
         "protocol" => "all",
         "country" => "all",
         "ssl" => "all",
@@ -100,7 +100,7 @@ class ProxyService
         return $promises;
     }
 
-    protected function checkProxyList(array $pr, $chunkCount = 1200)
+    public function checkProxyList(array $pr, $chunkCount = 1200)
     {
         $success = [];
         $failed = [];
@@ -168,10 +168,10 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
+        return array_unique(array_merge($proxiesArr2, []));
     }
 
 

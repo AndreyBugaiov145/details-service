@@ -10,6 +10,7 @@ use App\Services\DetailService;
 use App\Services\JobsService;
 use App\Services\ProxyService;
 use App\Utils\MemoryUtils;
+use DiDom\Document;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Route;
 
@@ -87,21 +88,51 @@ Route::get('/job', function () {
 })->middleware('auth');
 
 Route::get('/pr', function () {
-//    $url = "https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&page=2";
+//    $url = "https://www.us-proxy.org/";
 //
 //    $client = new Client();
-//
-//   $response =  $client->get($url);
-//   $rez = (string) $response->getBody();
-//   $rez =json_decode($rez);
 //    $proxies = [];
+//    $response = $client->get($url);
+//    $rez = (string)$response->getBody();
+//
+//    $dom = new Document($rez);
+//    $trs = $dom->find('textarea');
+//    $prList = $dom->find('textarea');
+//    $matches= [];
+////    dd($prList[0]->text());
+//    preg_match_all ('~([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*)~', $prList[0]->text(), $matches);
+//    dd($matches);
+//    dd(explode(PHP_EOL,explode(PHP_EOL,$prList[0]->text())[0]));
+//    foreach ($trs as $tr) {
+//        $td = $tr->find('td');
+//        if ($td[0]->find('abbr')) {
+//            $p1 = $td[0]->find('abbr')[0]->text();
+//            $p1 = $td[0]->find('abbr')[0]->text();
+//        } else {
+//            $p1 = $td[0]->text();
+//        }
+//
+//        if ( $td[1]->find('a')) {
+//            $p2 = $td[1]->find('a')[0]->text();
+//        } else {
+//            $p2 = $td[1]->text();
+//        }
+//        $proxies[] = "$p1:$p2";
+//    }
+//    dd($proxies[0]);
+//    $textarea = $div[0]->find('section.data');
+//    dd($textarea[0]->html());
+//    $rez = json_decode($rez);
+//
 //    foreach ($rez->data as $item) {
-//        $proxies[]= "$item->ip:$item->port";
+//        $proxies[] = "$item->ip:$item->port";
 //    }
     $proxies = [];
-    $ProxyService = new ProxyService;
-    $result = $ProxyService->getProxies();
-   dd( $result);
+//    $ProxyService = new ProxyService;
+//    $result = $ProxyService->getProxies();
+    dump('$result');
+    sleep(10);
+    dd(1);
 
 })->middleware('auth');
 

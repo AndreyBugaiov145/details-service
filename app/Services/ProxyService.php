@@ -60,8 +60,13 @@ class ProxyService
     protected function fetchProxy()
     {
         $endpoint = new ProxyScrape($this->opt1);
+        $proxies1 = $endpoint->get() ?: [];
 
-        return $endpoint->get() ?: [];
+        $proxyOrg = new ProxyOrg() ;
+        $proxies2 = $proxyOrg->getProxies();
+
+
+        return array_merge($proxies1, $proxies2);
     }
 
     protected function createAsyncRequestsArr($proxies)
@@ -168,10 +173,10 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        return array_unique(array_merge($proxiesArr2, []));
+        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
     }
 
 

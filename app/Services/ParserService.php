@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use DiDom\Document;
-use PHPHtmlParser\Dom;
 
 class ParserService
 {
     public function __construct($html)
     {
         $this->dom = new Document($html);
-
     }
 
     public function getAllChildCategoriesWithJns(): array

@@ -85,4 +85,10 @@ Route::get('/job', function () {
     $JobsService->createPendingCategoriesOrDetailsJobs();
 })->middleware('auth');
 
+Route::get('/pr', function () {
+    $JobsService = new ProxyService();
+    $r = $JobsService->getProxies();
+    dd($r);
+})->middleware('auth');
+
 

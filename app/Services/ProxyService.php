@@ -8,7 +8,7 @@ use Log;
 class ProxyService
 {
     protected $opt1 = [
-        "timeout" => 3500,
+        "timeout" => 8000,
         "protocol" => "all",
         "country" => "all",
         "ssl" => "all",
@@ -52,16 +52,23 @@ class ProxyService
     {
         $proxies = $this->fetchProxy();
         $result = $this->checkProxyList($proxies);
-//        $this->saveProxies($result['success']);
+        $this->saveProxies($result['success']);
 
         return $result['success'];
     }
 
     protected function fetchProxy()
     {
-        $endpoint = new ProxyScrape($this->opt1);
+        try {
+            $endpoint = new ProxyScrape($this->opt1);
+            $proxies = $endpoint->get() ?: [];
+        } catch (\Exception $e) {
+            Log::debug('ProxyScrape ERROR');
+            sleep(60*5);
+            $proxies = [];
+        }
 
-        return $endpoint->get() ?: [];
+        return $proxies;
     }
 
     protected function createAsyncRequestsArr($proxies)
@@ -169,10 +176,10 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        return array_unique(array_merge([], $proxiesArr2));
+        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
     }
 
 

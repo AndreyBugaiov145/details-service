@@ -15,7 +15,7 @@ class FetchingService
     protected $connect_timeout = 14;
     protected $proxies = [];
     protected $proxyService;
-    protected $chunkCount = 600;
+    protected $chunkCount = 750;
 
     public function __construct()
     {
@@ -49,10 +49,17 @@ class FetchingService
 
     protected function getProxies(int $count = 15)
     {
+        $i = 0;
         $count = $count / 10 > 20 ? $count / 10 : 20;
-        if (count($this->proxies) < $count) {
+        while (count($this->proxies) < $count) {
             $this->proxies = $this->proxyService->getProxies();
             \Log::info('need count' . $count . '.Get new proxies' . count($this->proxies));
+            $i++ ;
+            if ($i>3){
+                $i = 0;
+                \Log::info('getProxies SLEEP');
+                sleep(60*5);
+            }
         }
 
         return $this->proxies;

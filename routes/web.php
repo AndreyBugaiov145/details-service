@@ -91,4 +91,11 @@ Route::get('/pr', function () {
     dd($r);
 })->middleware('auth');
 
+Route::get('/md', function () {
+    $categoriesDB = CategoryRepository::getLastChildrenCategories('AC',1968);
+    $categoriesDBIds = collect($categoriesDB)->pluck('id')->toArray();
+    $categories =  \App\Models\Category::doesntHave('details')->whereIn('id',$categoriesDBIds)->get();
+    dd($categories->toArray());
+})->middleware('auth');
+
 

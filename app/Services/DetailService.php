@@ -422,7 +422,9 @@ class DetailService
             $result = $this->fetchRequestCategories($data);
             if (count($result['success'])) {
                 $successRequestCount += count($result['success']);
-                $this->getChildCategoriesFromStreamResponses($result, $data);
+                $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);
+                $result['rejected'] = array_merge($result['rejected'], $rejected);
+                unset($rejected);
             }
             unset($result['success']);
             gc_collect_cycles();
@@ -446,7 +448,9 @@ class DetailService
                 $result['success'] = $rez['success'];
                 if (count($result['success'])) {
                     $successRequestCount += count($result['success']);
-                    $this->getChildCategoriesFromStreamResponses($result, $data);
+                    $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);
+                    $result['rejected'] = array_merge($result['rejected'], $rejected);
+                    unset($rejected);
                 }
                 $chunk_count = count($data) ?: 1;
                 Log::info($this->parsingSetting->brand . '- fetching child categories progress chunk = ' . 100 * $successRequestCount / $chunk_count);
@@ -472,17 +476,33 @@ class DetailService
     protected function getChildCategoriesFromStreamResponses($result, $data)
     {
         Log::info($this->parsingSetting->brand . '- start ParserService   ' . count($result['success']));
+
+        $rejected = [];
         foreach ($result['success'] as $key => $responseArr) {
             $html = $this->getCategoryHtmlFromStream($responseArr['value']);
             $item = Arr::first($data, function ($item) use ($key) {
                 return $item['uid'] == $key;
             });
             if (empty($html)) {
+                Log::error('REJECTED empty($html)');
+                $rejected[] = Arr::first($data, function ($item) use ($key) {
+                    $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
+                    return $uid == $key;
+                });
                 continue;
             }
             $parser = new ParserService($html);
             if ($parser->isFinalCategory()) {
                 $detailsData = $parser->getDetails();
+                if (count($detailsData) < 1) {
+                    Log::error('REJECTED NO DETAILS');
+                    $rejected[] = Arr::first($data, function ($item) use ($key) {
+                        $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
+                        return $uid == $key;
+                    });
+                    continue;
+                }
+
                 foreach ($detailsData as $i => $detail) {
                     $detailsData[$i]['category_id'] = $item['id'];
                     $detailsData[$i]['currency_id'] = $this->currency_id;
@@ -510,6 +530,8 @@ class DetailService
         unset($parser);
         unset($result);
         gc_collect_cycles();
+
+        return $rejected;
     }
 
     protected function saveCategory(&$data)
@@ -654,7 +676,7 @@ class DetailService
 
         $chunks = array_chunk($data, 3000);
         foreach ($chunks as $i => $chunk) {
-            Log::info($this->parsingSetting->brand . '-start fetching Analogy Details chunk count' . count($data));
+            Log::info($this->parsingSetting->brand . '-start fetching Analogy Details chunk count' . count($chunk));
             $successRequestCount = 0;
             $result = $this->fetchRequestAnalogyDetails($chunk);
             if (count($result['success'])) {

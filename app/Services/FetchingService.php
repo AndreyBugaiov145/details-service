@@ -11,8 +11,8 @@ class FetchingService
     protected $httpClient;
     protected $fetchUrl = 'https://www.rockauto.com/catalog/catalogapi.php';
     protected $mainPageUrl = 'https://www.rockauto.com/';
-    protected $timeout = 25;
-    protected $connect_timeout = 14;
+    protected $timeout = 20;
+    protected $connect_timeout = 10;
     protected $proxies = [];
     protected $proxyService;
     protected $chunkCount = 750;

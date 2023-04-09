@@ -15,8 +15,8 @@ class ProxyService
         "anonymity" => "all"
     ];
 
-    protected $connect_timeout = 25;
-    protected $timeout = 14;
+    protected $connect_timeout = 20;
+    protected $timeout = 10;
 
     protected $url = 'https://www.rockauto.com/catalog/catalogapi.php';
 

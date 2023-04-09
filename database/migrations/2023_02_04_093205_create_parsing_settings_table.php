@@ -24,6 +24,7 @@ class CreateParsingSettingsTable extends Migration
             $table->string('category_parsing_status')->default(ParsingSetting::STATUS_PENDING);
             $table->string('detail_parsing_status')->default(ParsingSetting::STATUS_PENDING);
             $table->boolean('is_show')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

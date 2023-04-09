@@ -66,7 +66,7 @@ class CategoryRepository
 
     public static function getChildMainYearsCategories($id)
     {
-        $parentMainCategory = Category::select(['title','id'])->find($id);
+        $parentMainCategory = Category::select(['title','id'])->sortByDesc('title')->find($id);
         if (is_null($parentMainCategory)) {
             return collect();
         }
@@ -116,7 +116,7 @@ class CategoryRepository
 
     public static function getChildCategories($id)
     {
-        $categories = Category::select(['title','id'])->where('parent_id', $id)->get();
+        $categories = Category::select(['title','id'])->where('parent_id', $id)->orderByDesc('title')->get();
 
         return $categories;
     }

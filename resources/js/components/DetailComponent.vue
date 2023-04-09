@@ -1,6 +1,6 @@
 <template>
     <tr>
-        <td><span>{{ detail.title }}</span></td>
+        <td><span v-html="detail.title"></span></td>
         <td><a href="" @click.prevent="showAnalogyDetail" title="Деталі аналоги">{{ detail.s_number }}</a></td>
         <td class="detail-desc">{{ detail.short_description }}</td>
         <td v-if="detail.isDisabled">Тимчасово недоступно</td>

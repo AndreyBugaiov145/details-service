@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Utils\MemoryUtils;
 use GuzzleHttp\Promise;
 use Log;
 
@@ -61,14 +62,27 @@ class ProxyService
     {
         try {
             $endpoint = new ProxyScrape($this->opt1);
-            $proxies = $endpoint->get() ?: [];
+            $proxies1 = $endpoint->get() ?: [];
         } catch (\Exception $e) {
             Log::debug('ProxyScrape ERROR');
             sleep(60*5);
-            $proxies = [];
+            $proxies1 = [];
         }
 
-        return $proxies;
+        try {
+            $proxyOrg = new ProxyOrg() ;
+            $proxies2 = $proxyOrg->getProxies();
+        } catch (\Exception $e) {
+            $proxies2 = [];
+        }
+
+
+        MemoryUtils::monitoringMemory();
+        unset($endpoint);
+        unset($proxyOrg);
+        gc_collect_cycles();
+
+        return array_merge($proxies1, $proxies2);
     }
 
     protected function createAsyncRequestsArr($proxies)
@@ -113,7 +127,6 @@ class ProxyService
         $failed = [];
         $chunks = array_chunk($pr, $chunkCount, true);
         try {
-//
             foreach ($chunks as $i => $chunk) {
                 $requests = $this->createAsyncRequestsArr($chunk);
                 $promise = Promise\settle($requests);

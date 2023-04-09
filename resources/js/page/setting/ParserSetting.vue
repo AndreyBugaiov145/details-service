@@ -88,12 +88,14 @@ export default {
             }
         },
         async deleteSetting(id) {
-            let response = await axios.delete(`/admin/settings/${id}`)
-            if (response.status) {
-                alert(response.data.message)
-                this.parserSettings = this.parserSettings.filter((setting) => setting.id !== id)
-            } else {
-                alert('Something went wrong try again later.')
+            if (confirm('Видалити ?')) {
+                let response = await axios.delete(`/admin/settings/${id}`)
+                if (response.status) {
+                    alert(response.data.message)
+                    this.parserSettings = this.parserSettings.filter((setting) => setting.id !== id)
+                } else {
+                    alert('Something went wrong try again later.')
+                }
             }
         },
         async updateCategoryParsingStatus(id) {

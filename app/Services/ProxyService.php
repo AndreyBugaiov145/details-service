@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Utils\MemoryUtils;
 use GuzzleHttp\Promise;
 use Log;
 
@@ -15,8 +16,8 @@ class ProxyService
         "anonymity" => "all"
     ];
 
-    protected $connect_timeout = 25;
-    protected $timeout = 14;
+    protected $connect_timeout = 20;
+    protected $timeout = 10;
 
     protected $url = 'https://www.rockauto.com/catalog/catalogapi.php';
 
@@ -59,12 +60,27 @@ class ProxyService
 
     protected function fetchProxy()
     {
-        $endpoint = new ProxyScrape($this->opt1);
-        $proxies1 = $endpoint->get() ?: [];
+        try {
+            $endpoint = new ProxyScrape($this->opt1);
+            $proxies1 = $endpoint->get() ?: [];
+        } catch (\Exception $e) {
+            Log::debug('ProxyScrape ERROR');
+            sleep(60*5);
+            $proxies1 = [];
+        }
 
-        $proxyOrg = new ProxyOrg() ;
-        $proxies2 = $proxyOrg->getProxies();
+        try {
+            $proxyOrg = new ProxyOrg() ;
+            $proxies2 = $proxyOrg->getProxies();
+        } catch (\Exception $e) {
+            $proxies2 = [];
+        }
 
+
+        MemoryUtils::monitoringMemory();
+        unset($endpoint);
+        unset($proxyOrg);
+        gc_collect_cycles();
 
         return array_merge($proxies1, $proxies2);
     }
@@ -105,7 +121,7 @@ class ProxyService
         return $promises;
     }
 
-    public function checkProxyList(array $pr, $chunkCount = 1200)
+    protected function checkProxyList(array $pr, $chunkCount = 1200)
     {
         $success = [];
         $failed = [];

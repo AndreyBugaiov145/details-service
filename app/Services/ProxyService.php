@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Utils\MemoryUtils;
 use GuzzleHttp\Promise;
 use Log;
 
@@ -65,6 +66,10 @@ class ProxyService
         $proxyOrg = new ProxyOrg() ;
         $proxies2 = $proxyOrg->getProxies();
 
+        MemoryUtils::monitoringMemory();
+        unset($endpoint);
+        unset($proxyOrg);
+        gc_collect_cycles();
 
         return array_merge($proxies1, $proxies2);
     }
@@ -173,7 +178,7 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 = [];// $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
         return array_unique(array_merge($proxiesArr2, $proxiesArr1));

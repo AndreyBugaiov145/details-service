@@ -1,0 +1,79 @@
+// Bootstrap
+@import "node_modules/bootstrap/scss/bootstrap";
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&family=Rubik:wght@400;500;700&display=swap');
+
+$container-max-widths: (
+    sm: 540px,
+    md: 720px,
+    lg: 960px,
+    xl: 1140px
+);
+
+*{
+    font-family: 'Playfair Display', serif;
+    font-family: 'Rubik', sans-serif;
+    color: #000
+}
+
+.mr-3 {
+    margin-right: 10px;
+}
+
+body {
+   //background-image:url('{{ asset('assets/images/b2b/graph-01.svg')}}');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: contain;
+    height: 100%;
+}
+
+nav{
+    h1{
+        font-family: 'Satisfy', cursive;
+    }
+    background-color: rgb(157, 178, 161,0.9);
+}
+
+.ml-3{
+    margin-left:20px
+}
+
+
+.categories-block{
+    background-color: #fff;
+    height: 100%;
+    min-height: 100vh;
+}
+
+.category-block-border{
+    border-bottom: 1px dashed black;
+}
+
+.shop-logo{
+    color:  #fff;
+    font-size: 70px;
+    font-weight: 900;
+    text-shadow: #9d500c 2px 0 10px;
+}
+
+.detail-desc{
+    font-size: 14px;
+}
+
+
+.phone{
+    font-family: sans-serif;
+    color: #302971 ;
+}
+.icon{
+    width:16px;
+    height: 16px;
+    font-size: 16px;
+    color: #302971 ;
+}
+
+.loader{
+    width:16px !important;
+    height: 16px !important;
+}

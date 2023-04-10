@@ -141,11 +141,11 @@ class ProxyService
 
                 foreach ($results as $key => $r) {
                     if ($r['state'] != 'rejected') {
-                        $rez ['success'][] = $r;
+                        $rez ['success'][$key] = $r;
                         $success[] = $key;
                     } else {
                         $failed[] = $key;
-                        $rez ['failed'][] = $r;
+                        $rez ['failed'][$key] = $r;
                     }
                 }
                 unset($results);

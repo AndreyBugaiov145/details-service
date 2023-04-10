@@ -10,8 +10,6 @@ use App\Services\DetailService;
 use App\Services\JobsService;
 use App\Services\ProxyService;
 use App\Utils\MemoryUtils;
-use DiDom\Document;
-use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -88,51 +86,17 @@ Route::get('/job', function () {
 })->middleware('auth');
 
 Route::get('/pr', function () {
-//    $url = "https://www.us-proxy.org/";
-//
-//    $client = new Client();
-//    $proxies = [];
-//    $response = $client->get($url);
-//    $rez = (string)$response->getBody();
-//
-//    $dom = new Document($rez);
-//    $trs = $dom->find('textarea');
-//    $prList = $dom->find('textarea');
-//    $matches= [];
-////    dd($prList[0]->text());
-//    preg_match_all ('~([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*)~', $prList[0]->text(), $matches);
-//    dd($matches);
-//    dd(explode(PHP_EOL,explode(PHP_EOL,$prList[0]->text())[0]));
-//    foreach ($trs as $tr) {
-//        $td = $tr->find('td');
-//        if ($td[0]->find('abbr')) {
-//            $p1 = $td[0]->find('abbr')[0]->text();
-//            $p1 = $td[0]->find('abbr')[0]->text();
-//        } else {
-//            $p1 = $td[0]->text();
-//        }
-//
-//        if ( $td[1]->find('a')) {
-//            $p2 = $td[1]->find('a')[0]->text();
-//        } else {
-//            $p2 = $td[1]->text();
-//        }
-//        $proxies[] = "$p1:$p2";
-//    }
-//    dd($proxies[0]);
-//    $textarea = $div[0]->find('section.data');
-//    dd($textarea[0]->html());
-//    $rez = json_decode($rez);
-//
-//    foreach ($rez->data as $item) {
-//        $proxies[] = "$item->ip:$item->port";
-//    }
-    $proxies = [];
-//    $ProxyService = new ProxyService;
-//    $result = $ProxyService->getProxies();
-    dump('$result');
-    sleep(10);
-    dd(1);
-
+    $JobsService = new ProxyService();
+    $r = $JobsService->getProxies();
+    dd($r);
 })->middleware('auth');
+
+Route::get('/md', function () {
+    $categoriesDB = CategoryRepository::getLastChildrenCategories('BMW',2020);
+    $categoriesDBIds = collect($categoriesDB)->pluck('id')->toArray();
+    dd(count($categoriesDBIds));
+    $categories =  \App\Models\Category::doesntHave('details')->whereIn('id',$categoriesDBIds)->get();
+    dd($categories->toArray());
+})->middleware('auth');
+
 

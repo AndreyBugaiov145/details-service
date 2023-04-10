@@ -200,6 +200,7 @@ class ProxyService
     {
         Log::info('getProxies');
         $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        dd($proxiesArr1);
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
         return array_unique(array_merge($proxiesArr2, []));

@@ -54,6 +54,9 @@ class ProxyService
     public function fetchAndSaveProxies()
     {
         $proxies = $this->fetchProxy();
+        foreach ($proxies as &$proxy) {
+            $proxy = str_replace('\r','',$proxy);
+        }
         $result = $this->checkProxyList($proxies);
         $this->saveProxies($result['success']);
 

@@ -137,6 +137,7 @@ class ProxyService
                 $promise = Promise\settle($requests);
                 $results = $promise->wait();
 
+                dd($results);
                 foreach ($results as $key => $r) {
                     if ($r['state'] != 'rejected') {
                         $success[] = $key;

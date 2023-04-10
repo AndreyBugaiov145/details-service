@@ -178,7 +178,6 @@ class ProxyService
     protected function getCheckredProxyFromDB()
     {
         $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
-        dd($proxies);
 //        $requests = $this->createAsyncRequestsArr($proxies);
         return $this->checkProxyList($proxies, 2000);
     }

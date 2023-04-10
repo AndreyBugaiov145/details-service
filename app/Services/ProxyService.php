@@ -148,7 +148,6 @@ class ProxyService
                         $rez ['failed'][] = $r;
                     }
                 }
-                dd($rez);
                 unset($results);
                 unset($promise);
                 unset($requests);

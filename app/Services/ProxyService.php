@@ -178,6 +178,7 @@ class ProxyService
     protected function getCheckredProxyFromDB()
     {
         $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
+        dd($proxies);
 //        $requests = $this->createAsyncRequestsArr($proxies);
         return $this->checkProxyList($proxies, 2000);
     }
@@ -198,7 +199,7 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
         return array_unique(array_merge($proxiesArr2, []));

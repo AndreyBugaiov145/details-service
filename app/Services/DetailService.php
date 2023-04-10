@@ -28,6 +28,7 @@ class DetailService
     public $request_count = 0;
     public $detailsData = [];
     public $categoriesData = [];
+    protected $rejectedUuids = [];
 
     public function __construct(ParsingSetting $parsingSetting)
     {
@@ -449,19 +450,31 @@ class DetailService
                 if (count($result['success'])) {
                     $successRequestCount += count($result['success']);
                     $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);
+                    foreach ($rejected as $key => $rejectedItem) {
+                        $this->rejectedUuids[$rejectedItem['uid']] = isset($this->rejectedUuids[$rejectedItem['uid']]) ? ($this->rejectedUuids[$rejectedItem['uid']] + 1) : 1;
+                        if ($this->rejectedUuids[$rejectedItem['uid']] > 4){
+                           unset ($rejected[$key]);
+                        }
+                    }
                     $result['rejected'] = array_merge($result['rejected'], $rejected);
-                    unset($rejected);
                 }
+                Log::debug('$this->rejectedUuids',$this->rejectedUuids);
+                Log::debug('$this->$rejected',$rejected);
+                $rejectedCount = isset($rejected) ? count($rejected) : 0;
                 $chunk_count = count($data) ?: 1;
-                Log::info($this->parsingSetting->brand . '- fetching child categories progress chunk = ' . 100 * $successRequestCount / $chunk_count);
+                Log::info($this->parsingSetting->brand . '- fetching child categories progress chunk = ' . 100 * ($successRequestCount - $rejectedCount) / $chunk_count);
 
                 MemoryUtils::monitoringMemory();
                 unset($rez);
+                unset($rejected);
                 unset($result['success']);
                 gc_collect_cycles();
             };
+
+            $this->rejectedUuids =[];
             $all_count = count($chunks) ?: 1;
             Log::info($this->parsingSetting->brand . '- fetching categories child progress = ' . 100 * ($i + 1) / $all_count);
+            gc_collect_cycles();
         }
 
         gc_collect_cycles();
@@ -719,54 +732,7 @@ class DetailService
         }
         unset($chunks);
         unset($data);
-
         gc_collect_cycles();
-
-
-//        $result = $this->fetchRequestAnalogyDetails($data);
-//        if ($this->attempts > $this->max_attempts) {
-//            Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
-//            throw new GrabberException("Failed fetchAndMergeToDetailAnalogyDetails. attempts > $this->attempts");
-//        }
-//
-//        while (count($result['rejected'])) {
-//            MemoryUtils::monitoringMemory();
-//            gc_collect_cycles();
-//            $this->attempts++;
-//            if ($this->attempts > $this->max_attempts) {
-//                throw new GrabberException("Failed fetching AnalogyDetails. attempts > $this->attempts");
-//            }
-//            $rez = $this->fetchRequestAnalogyDetails($result['rejected']);
-//            $result['rejected'] = $rez['rejected'];
-//            $result['success'] = array_replace($result['success'], $rez['success']);
-//            $all_count = count($data) ?: 1;
-//            Log::info($this->parsingSetting->brand . '- fetching  Analogy Details progress = ' . 100 * count($result['success']) / $all_count);
-//            MemoryUtils::monitoringMemory();
-//        }
-//
-//        foreach ($result['success'] as $key => $responseArr) {
-//            $html = $this->getBuyersGuiHtmlFromStream($responseArr['value']);
-//            $item = Arr::first($data, function ($item) use ($key) {
-//                return $item['partkey'] == $key;
-//            });
-//            unset($item['partkey']);
-//
-//            $parser = new ParserService($html);
-//            $analogyDetailsData = $parser->getAnalogyDetails();
-//
-//            foreach ($item as $detail) {
-//                $this->detailsData[] = array_merge($detail, [
-//                    'analogy_details' => json_encode($analogyDetailsData),
-//                    'is_parsing_analogy_details' => true
-//                ]);
-//
-//            }
-//            MemoryUtils::monitoringMemory();
-//            unset($parser);
-//            unset($analogyDetailsData);
-//        }
-//        gc_collect_cycles();
-
     }
 
     public function getAnalogyDetailsData($result, $data)

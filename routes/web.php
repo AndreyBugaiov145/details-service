@@ -92,8 +92,9 @@ Route::get('/pr', function () {
 })->middleware('auth');
 
 Route::get('/md', function () {
-    $categoriesDB = CategoryRepository::getLastChildrenCategories('AC',1968);
+    $categoriesDB = CategoryRepository::getLastChildrenCategories('BMW',2020);
     $categoriesDBIds = collect($categoriesDB)->pluck('id')->toArray();
+    dd(count($categoriesDBIds));
     $categories =  \App\Models\Category::doesntHave('details')->whereIn('id',$categoriesDBIds)->get();
     dd($categories->toArray());
 })->middleware('auth');

@@ -127,13 +127,14 @@ class ProxyService
     {
         $success = [];
         $failed = [];
-        $chunks = array_chunk($pr, 500, true);
+        $chunks = array_chunk($pr, $chunkCount, true);
         try {
             foreach ($chunks as $i => $chunk) {
                 $requests = $this->createAsyncRequestsArr($chunk);
                 $promise = Promise\settle($requests);
                 $results = $promise->wait();
 
+                dd($results);
                 foreach ($results as $key => $r) {
                     if ($r['state'] != 'rejected') {
                         $success[] = $key;

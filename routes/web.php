@@ -82,7 +82,13 @@ Route::get('/job', function () {
 })->middleware('auth');
 
 Route::get('/p', function () {
-    $endpoint = new ProxyScrape($this->opt1);
+    $endpoint = new ProxyScrape([
+        "timeout" => 8000,
+        "protocol" => "all",
+        "country" => "all",
+        "ssl" => "all",
+        "anonymity" => "all"
+    ]);
     $proxies1 = $endpoint->get() ?: [];
     dd($proxies1);
 })->middleware('auth');

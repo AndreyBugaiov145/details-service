@@ -458,8 +458,7 @@ class DetailService
                     }
                     $result['rejected'] = array_merge($result['rejected'], $rejected);
                 }
-                Log::debug('$this->rejectedUuids',$this->rejectedUuids);
-                Log::debug('$this->$rejected',$rejected);
+
                 $rejectedCount = isset($rejected) ? count($rejected) : 0;
                 $chunk_count = count($data) ?: 1;
                 Log::info($this->parsingSetting->brand . '- fetching child categories progress chunk = ' . 100 * ($successRequestCount - $rejectedCount) / $chunk_count);

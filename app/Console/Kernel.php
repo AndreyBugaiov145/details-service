@@ -7,9 +7,17 @@ use App\Services\CurrencyService;
 use App\Services\JobsService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Log;
 
 class Kernel extends ConsoleKernel
 {
+
+
+    protected function scheduleTimezone()
+    {
+        return 'Europe/Istanbul';
+    }
+
     /**
      * Define the application's command schedule.
      *
@@ -18,27 +26,31 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+
+        $schedule->call(function () {
+            Log::info('test schedule');
+        })->everyMinute();
         // Update UAH currency
         $schedule->call(function () {
             $currencyService = new CurrencyService();
             $currencyService->updateUAHRate();
-        })->timezone('Europe/Istanbul')->twiceDaily(5, 14);
+        })->twiceDaily(5, 14);
 
         // Update UAH currency
         $schedule->call(function () {
-           Proxy::where('fail_count', '>',13)->delete();
-        })->timezone('Europe/Istanbul')->monthly();
+           Proxy::where('fail_count', '>',15)->delete();
+        })->monthly();
 
         //Grabbing
         $schedule->call(function () {
             $jobsService = new JobsService();
             $jobsService->addGrabbingAllCategoriesAndDetailsJobs();
-        })->timezone('Europe/Istanbul')->monthly();
+        })->monthly();
 
         $schedule->call(function () {
             $jobsService = new JobsService();
             $jobsService->addGrabbingAllDetailsJobs();
-        })->timezone('Europe/Istanbul')->weekly();
+        })->weekly();
 
         $schedule->call(function () {
             $jobsService = new JobsService();
@@ -48,7 +60,7 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             $jobsService = new JobsService();
             $jobsService->createPendingCategoriesOrDetailsJobs();
-        })->timezone('Europe/Istanbul')->daily();
+        })->daily();
 
     }
 

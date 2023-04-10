@@ -130,6 +130,7 @@ class ProxyService
         $chunks = array_chunk($pr, $chunkCount, true);
         try {
             foreach ($chunks as $i => $chunk) {
+                dd($chunk);
                 $requests = $this->createAsyncRequestsArr($chunk);
                 $promise = Promise\settle($requests);
                 $results = $promise->wait();

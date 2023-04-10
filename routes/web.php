@@ -8,6 +8,7 @@ use App\Repositories\CategoryRepository;
 use App\Services\CurrencyService;
 use App\Services\DetailService;
 use App\Services\JobsService;
+use App\Services\ProxyScrape;
 use App\Services\ProxyService;
 use App\Utils\MemoryUtils;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,12 @@ Route::prefix('admin')->group(function () {
 Route::get('/job', function () {
     $JobsService = new JobsService();
     $JobsService->createPendingCategoriesOrDetailsJobs();
+})->middleware('auth');
+
+Route::get('/p', function () {
+    $endpoint = new ProxyScrape($this->opt1);
+    $proxies1 = $endpoint->get() ?: [];
+    dd($proxies1);
 })->middleware('auth');
 
 Route::get('/pr', function () {

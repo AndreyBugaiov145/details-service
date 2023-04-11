@@ -452,7 +452,7 @@ class DetailService
                     $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);
                     foreach ($rejected as $key => $rejectedItem) {
                         $this->rejectedUuids[$rejectedItem['uid']] = isset($this->rejectedUuids[$rejectedItem['uid']]) ? ($this->rejectedUuids[$rejectedItem['uid']] + 1) : 1;
-                        if ($this->rejectedUuids[$rejectedItem['uid']] > 7){
+                        if ($this->rejectedUuids[$rejectedItem['uid']] > 5){
                            unset ($rejected[$key]);
                         }
                     }

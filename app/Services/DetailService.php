@@ -689,6 +689,7 @@ class DetailService
         $chunks = array_chunk($data, 3000);
         foreach ($chunks as $i => $chunk) {
             Log::info($this->parsingSetting->brand . '-start fetching Analogy Details chunk count' . count($chunk));
+            $this->attempts = 0;
             $successRequestCount = 0;
             $result = $this->fetchRequestAnalogyDetails($chunk);
             if (count($result['success'])) {

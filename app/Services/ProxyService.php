@@ -9,7 +9,7 @@ use Log;
 class ProxyService
 {
     protected $opt1 = [
-        "timeout" => 8000,
+        "timeout" => 3000,
         "protocol" => "all",
         "country" => "all",
         "ssl" => "all",

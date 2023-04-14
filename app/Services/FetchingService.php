@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Utils\MemoryUtils;
 use Arr;
 use GuzzleHttp\Promise;
+use Str;
 
 class FetchingService
 {
@@ -147,6 +148,8 @@ class FetchingService
         foreach ($chunks as $i => $chunk) {
             $promises = [];
             $proxies = array_values($this->getProxies(count($chunk)));
+            $proxies = Arr::random($proxies,5);
+
             do {
                 $proxies = array_merge($proxies, $proxies);
             } while (count($proxies) / count($chunk) < 1);
@@ -157,7 +160,7 @@ class FetchingService
             $j = 0;
             foreach ($chunk as $item) {
                 $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
-                $key = $uid . '|' . $proxies[$j];
+                $key = $uid .Str::random(3) . '|' . $proxies[$j];
                 $promises[$key] = $this->getAsyncRequestChildCategory($item['jsn'], $proxies[$j]);
                 $j++;
             }

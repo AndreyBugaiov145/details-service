@@ -156,7 +156,6 @@ class ProxyService
                 $this->httpClient = false;
                 gc_collect_cycles();
             }
-            dd($rez);
         } catch (\GuzzleHttp\Exception\ConnectException $e) {
             \Log::critical($e->getMessage(), $e->getRequest());
         }

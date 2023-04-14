@@ -58,7 +58,6 @@ class ProxyService
             $proxy = trim($proxy);
         }
         $result = $this->checkProxyList($proxies);
-        dd($result);
         $this->saveProxies($result['success']);
 
         return $proxies;
@@ -139,7 +138,7 @@ class ProxyService
                 $promise = Promise\settle($requests);
                 $results = $promise->wait();
 
-
+dd($results);
                 foreach ($results as $key => $r) {
                     if ($r['state'] != 'rejected') {
                         $rez ['success'][$key] = $r;

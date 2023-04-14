@@ -57,8 +57,9 @@ class ProxyService
         foreach ($proxies as &$proxy) {
             $proxy = trim($proxy);
         }
-//        $result = $this->checkProxyList($proxies);
-//        $this->saveProxies($result['success']);
+        $result = $this->checkProxyList($proxies);
+        dd($result);
+        $this->saveProxies($result['success']);
 
         return $proxies;
     }

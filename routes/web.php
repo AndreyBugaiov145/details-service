@@ -96,12 +96,22 @@ Route::get('/p', function () {
 Route::get('/pr', function () {
     $JobsService = new ProxyService();
     $proxies = $JobsService->getProxies();
-//    $i = 0;
-//    do {
-//        $proxies = array_merge($proxies, $proxies);
-//        $i++;
-//    } while ($i < 6);
-    dd($proxies);
+    $i = 0;
+    do {
+        $proxies = array_merge($proxies, $proxies);
+        $i++;
+    } while ($i < 6);
+
+    dump($proxies);
+    for ($i =0 ; $i < 150 ; $i++) {
+        $uid = 'SDFsd4r34FSFSDf4tet544';
+        $key = $uid . '|' . $proxies[$i];
+        dump($key);
+        [$uid, $proxy] = explode('|', $key);
+        dump($uid . ' - ' . $proxy);
+    }
+
+    dd(1);
 })->middleware('auth');
 
 Route::get('/md', function () {

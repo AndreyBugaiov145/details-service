@@ -95,8 +95,13 @@ Route::get('/p', function () {
 
 Route::get('/pr', function () {
     $JobsService = new ProxyService();
-    $r = $JobsService->getProxies();
-    dd($r);
+    $proxies = $JobsService->getProxies();
+    $i = 0;
+    do {
+        $proxies = array_merge($proxies, $proxies);
+        $i++;
+    } while ($i < 6);
+    dd($proxies);
 })->middleware('auth');
 
 Route::get('/md', function () {

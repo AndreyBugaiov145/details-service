@@ -9,7 +9,7 @@ use Log;
 class ProxyService
 {
     protected $opt1 = [
-        "timeout" => 8000,
+        "timeout" => 3000,
         "protocol" => "all",
         "country" => "all",
         "ssl" => "all",
@@ -33,7 +33,7 @@ class ProxyService
         return new \GuzzleHttp\Client([
             'headers' => [
                 'Connection' => 'close',
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
                 'Origin' => 'https://www.rockauto.com',
             ],
             'Connection' => 'close',
@@ -198,10 +198,10 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
+        return array_unique(array_merge($proxiesArr2, []));
     }
 
 

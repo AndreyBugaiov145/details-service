@@ -12,7 +12,7 @@ class FetchingService
     protected $fetchUrl = 'https://www.rockauto.com/catalog/catalogapi.php';
     protected $mainPageUrl = 'https://www.rockauto.com/';
     protected $timeout = 20;
-    protected $connect_timeout = 10;
+    protected $connect_timeout = 14;
     protected $proxies = [];
     protected $proxyService;
     protected $chunkCount = 500;
@@ -163,6 +163,7 @@ class FetchingService
             }
             $responses = Promise\settle($promises)->wait();
 
+            dd($responses);
             foreach ($responses as $key => $responseArr) {
                 try {
                     [$uid, $proxy] = explode('|', $key);

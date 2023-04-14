@@ -383,9 +383,12 @@ class DetailService
         $this->request_count += count($data);
         $rejectedCategoryData = [];
         $successCategoryData = [];
+
+        $rejected = [];
         $result = $this->grabber->getAsyncChildCategories($data);
         foreach ($result as $key => $responseArr) {
             if ($responseArr['state'] === 'rejected') {
+                $rejected[] = $responseArr;
                 $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {
                     $uid = isset($item['uid']) ? $item['uid'] : $item['title'];
                     return $uid == $key;
@@ -394,6 +397,9 @@ class DetailService
                 $successCategoryData[$key] = $responseArr;
             }
         }
+
+        Log::error('rejected _rend' ,Arr::random ($rejected,10));
+
         MemoryUtils::monitoringMemory();
         gc_collect_cycles();
 
@@ -426,6 +432,7 @@ class DetailService
                 $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);
                 $result['rejected'] = array_merge($result['rejected'], $rejected);
                 unset($rejected);
+
             }
             unset($result['success']);
             gc_collect_cycles();
@@ -447,6 +454,7 @@ class DetailService
                 $rez = $this->fetchRequestCategories($result['rejected']);
                 $result['rejected'] = $rez['rejected'];
                 $result['success'] = $rez['success'];
+
                 if (count($result['success'])) {
                     $successRequestCount += count($result['success']);
                     $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);

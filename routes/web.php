@@ -7,6 +7,7 @@ use App\Http\Controllers\Users;
 use App\Repositories\CategoryRepository;
 use App\Services\CurrencyService;
 use App\Services\DetailService;
+use App\Services\FetchingService;
 use App\Services\JobsService;
 use App\Services\ProxyScrape;
 use App\Services\ProxyService;
@@ -94,22 +95,33 @@ Route::get('/p', function () {
 })->middleware('auth');
 
 Route::get('/pr', function () {
-    $JobsService = new ProxyService();
-    $proxies = $JobsService->getProxies();
-    $i = 0;
+//    $JobsService = new ProxyService();
+//    $proxies = $JobsService->getProxies();
+
+    $categoriesDB = CategoryRepository::getLastChildrenCategories('BMW',2018);
+
+
+
+$data = [];
+for($i = 0; $i < 40 ; $i++) {
+    $data[] = $categoriesDB[0];
+}
+    $fetchingServ = new FetchingService();
+    $fetchingServ->getAsyncChildCategories($data);
+dd(1);
     do {
         $proxies = array_merge($proxies, $proxies);
         $i++;
-    } while ($i < 6);
+    } while ($i <1);
 
-    dump($proxies);
-    for ($i =0 ; $i < 150 ; $i++) {
-        $uid = 'SDFsd4r34FSFSDf4tet544';
-        $key = $uid . '|' . $proxies[$i];
-        dump($key);
-        [$uid, $proxy] = explode('|', $key);
-        dump($uid . ' - ' . $proxy);
-    }
+    dump( Arr::random($proxies,5));
+//    for ($i =0 ; $i < 150 ; $i++) {
+//        $uid = 'SDFsd4r34FSFSDf4tet544';
+//        $key = $uid . '|' . $proxies[$i];
+//        dump($key);
+//        [$uid, $proxy] = explode('|', $key);
+//        dump($uid . ' - ' . $proxy);
+//    }
 
     dd(1);
 })->middleware('auth');

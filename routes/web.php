@@ -95,9 +95,9 @@ Route::get('/p', function () {
 })->middleware('auth');
 
 Route::get('/pr', function () {
-//    $JobsService = new ProxyService();
-//    $proxies = $JobsService->getProxies();
-
+    $JobsService = new ProxyService();
+    $proxies = $JobsService->getProxies();
+dd($proxies);
     $categoriesDB = CategoryRepository::getLastChildrenCategories('CHRYSLER',2020);
 
 

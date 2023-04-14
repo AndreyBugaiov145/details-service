@@ -9,7 +9,7 @@ use Log;
 class ProxyService
 {
     protected $opt1 = [
-        "timeout" => 3000,
+        "timeout" => 5000,
         "protocol" => "all",
         "country" => "all",
         "ssl" => "all",
@@ -65,14 +65,14 @@ class ProxyService
 
     protected function fetchProxy()
     {
-        try {
-            $endpoint = new ProxyScrape($this->opt1);
-            $proxies1 = $endpoint->get() ?: [];
-        } catch (\Exception $e) {
-            Log::debug('ProxyScrape ERROR');
-            sleep(60*5);
-            $proxies1 = [];
-        }
+//        try {
+//            $endpoint = new ProxyScrape($this->opt1);
+//            $proxies1 = $endpoint->get() ?: [];
+//        } catch (\Exception $e) {
+//            Log::debug('ProxyScrape ERROR');
+//            sleep(60*5);
+//            $proxies1 = [];
+//        }
 
         try {
             $proxyOrg = new ProxyOrg() ;
@@ -87,7 +87,7 @@ class ProxyService
         unset($proxyOrg);
         gc_collect_cycles();
 
-        return array_merge($proxies1, $proxies2);
+        return array_merge($proxies2, []);
     }
 
     protected function createAsyncRequestsArr($proxies)

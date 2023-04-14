@@ -98,7 +98,7 @@ Route::get('/pr', function () {
 //    $JobsService = new ProxyService();
 //    $proxies = $JobsService->getProxies();
 
-    $categoriesDB = CategoryRepository::getLastChildrenCategories('BMW',2018);
+    $categoriesDB = CategoryRepository::getLastChildrenCategories('CHRYSLER',2020);
 
 
 

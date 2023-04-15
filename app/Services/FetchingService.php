@@ -52,13 +52,13 @@ class FetchingService
         $i = 0;
         $count = $count / 10 > 20 ? $count / 10 : 20;
         while (count($this->proxies) < $count) {
-            $this->proxies = $this->proxyService->getProxies();
+            $this->proxies = array_unique(array_merge($this->proxies, $this->proxyService->getProxies()));
             \Log::info('need count' . $count . '.Get new proxies' . count($this->proxies));
-            $i++ ;
-            if ($i>3){
+            $i++;
+            if ($i > 3) {
                 $i = 0;
                 \Log::info('getProxies SLEEP');
-                sleep(60*5);
+                sleep(60 * 5);
             }
         }
 

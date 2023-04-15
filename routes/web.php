@@ -105,7 +105,7 @@ Route::get('/pr', function () {
 })->middleware('auth');
 
 Route::get('/bc', function () {
-    $client = \GuzzleHttp\Client([
+    $client = new \GuzzleHttp\Client([
         'headers' => [
             'Connection' => 'close',
             'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
@@ -115,9 +115,9 @@ Route::get('/bc', function () {
         CURLOPT_FORBID_REUSE => true,
         CURLOPT_FRESH_CONNECT => true,
     ]);
-
+    $url = 'https://www.rockauto.com/catalog/catalogapi.php';
    $resault = $client->post(
-        $this->url,
+        $url,
         [
             'timeout' => 5,
             'connect_timeout' => 10,

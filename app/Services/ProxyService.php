@@ -9,7 +9,7 @@ use Log;
 class ProxyService
 {
     protected $opt1 = [
-        "timeout" => 3000,
+        "timeout" => 10000,
         "protocol" => "all",
         "country" => "all",
         "ssl" => "all",
@@ -17,7 +17,7 @@ class ProxyService
     ];
 
     protected $connect_timeout = 20;
-    protected $timeout = 10;
+    protected $timeout = 12;
 
     protected $url = 'https://www.rockauto.com/catalog/catalogapi.php';
 

@@ -398,7 +398,7 @@ class DetailService
         }
 
         if (count($rejected)) {
-            $count_rejected_log = 5 > count($rejected)  ? 5 : count($rejected);
+            $count_rejected_log = 5 < count($rejected)  ? 5 : count($rejected);
             Log::error('rejected _rend', Arr::random($rejected, $count_rejected_log));
         }
         unset($rejected);

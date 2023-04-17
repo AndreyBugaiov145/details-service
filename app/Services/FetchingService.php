@@ -32,6 +32,7 @@ class FetchingService
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
                 'Origin' => 'https://www.rockauto.com',
             ],
+            'verify' => false,
             'Connection' => 'close',
             CURLOPT_FORBID_REUSE => true,
             'allow_redirects' => false,

@@ -34,7 +34,6 @@ class ProxyService
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
                 'Origin' => 'https://www.rockauto.com',
             ],
-            'verify' => false,
             'Connection' => 'close',
             CURLOPT_FORBID_REUSE => true,
             CURLOPT_FRESH_CONNECT => true,
@@ -188,10 +187,10 @@ class ProxyService
     public function getProxies()
     {
         Log::info('getProxies');
-//        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
+        $proxiesArr1 = $this->getWorkingProxyAndUpdateFailedFromDB();
         $proxiesArr2 = $this->fetchAndSaveProxies();
 
-        return array_unique(array_merge($proxiesArr2, []));
+        return array_unique(array_merge($proxiesArr2, $proxiesArr1));
     }
 
 

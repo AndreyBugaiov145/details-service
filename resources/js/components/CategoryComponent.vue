@@ -116,7 +116,7 @@ export default {
         async loadCategory() {
             if (!this.categories.length && !this.details.length) {
                 this.isLoading = true
-                let response = await axios.get(`/api/category/children/${this.category.id}`)
+                let response = await axios.get(`/api/category/children/${this.category.id}?child_type=${this.category.child_type}`)
                 this.isLoading = false
                 if (response.status) {
                     this.categories = response.data.data

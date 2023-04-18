@@ -4,6 +4,7 @@ use App\Http\Controllers\Categories;
 use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
+use App\Models\Category;
 use App\Repositories\CategoryRepository;
 use App\Services\CurrencyService;
 use App\Services\DetailService;

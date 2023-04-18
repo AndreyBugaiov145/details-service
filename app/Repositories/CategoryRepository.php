@@ -11,14 +11,28 @@ class CategoryRepository
     const CHILD_TYPE_YEAR = 'year';
     const CHILD_TYPE_MODEL = 'model';
 
-    public static function getLastChildrenCategories($category_title, $year)
+    public static function getLastChildrenCategories($category_title, $year, $car_models = '')
     {
-        $category = Category::where('title', $year)
-            ->whereHas('parent', function ($query) use ($category_title) {
-                $query->where('title', $category_title);
-            })
-            ->withAllChildren()->first();
-        $categories = self::getLastChildren([$category->toArray()]);
+
+        if (strlen($car_models)) {
+            $category = Category::where('title', $year)
+                ->whereHas('parent', function ($query) use ($category_title) {
+                    $query->where('title', $category_title);
+                })
+                ->with('children', function ($query) use ($car_models) {
+                    $query->whereIn('title', explode(',', $car_models))->withAllChildren();
+                })
+                ->first();
+            $categories = self::getLastChildren([$category->toArray()]);
+        } else {
+            $category = Category::where('title', $year)
+                ->whereHas('parent', function ($query) use ($category_title) {
+                    $query->where('title', $category_title);
+                })
+                ->withAllChildren()
+                ->first();
+            $categories = self::getLastChildren([$category->toArray()]);
+        }
 
         return $categories;
     }
@@ -104,7 +118,7 @@ class CategoryRepository
             return collect();
         }
 
-        if (strlen( $parsingSetting->car_models)) {
+        if (strlen($parsingSetting->car_models)) {
             $categories = $categories->filter(function ($category, $key) use ($parsingSetting) {
                 return str_contains($parsingSetting->car_models, $category->title);
             });

@@ -423,9 +423,10 @@ class DetailService
 
             $result = $this->fetchRequestCategories($data);
             if (count($result['success'])) {
-                $successRequestCount += count($result['success']);
                 $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);
                 $result['rejected'] = array_merge($result['rejected'], $rejected);
+                $rejectedCount = isset($rejected) ? count($rejected) : 0;
+                $successRequestCount += (count($result['success']) - $rejectedCount);
                 unset($rejected);
             }
             unset($result['success']);
@@ -449,20 +450,20 @@ class DetailService
                 $result['rejected'] = $rez['rejected'];
                 $result['success'] = $rez['success'];
                 if (count($result['success'])) {
-                    $successRequestCount += count($result['success']);
                     $rejected = $this->getChildCategoriesFromStreamResponses($result, $data);
                     foreach ($rejected as $key => $rejectedItem) {
                         $this->rejectedUuids[$rejectedItem['uid']] = isset($this->rejectedUuids[$rejectedItem['uid']]) ? ($this->rejectedUuids[$rejectedItem['uid']] + 1) : 1;
-                        if ($this->rejectedUuids[$rejectedItem['uid']] > 5){
-                           unset ($rejected[$key]);
+                        if ($this->rejectedUuids[$rejectedItem['uid']] > 5) {
+                            unset ($rejected[$key]);
                         }
                     }
+                    $rejectedCount = isset($rejected) ? count($rejected) : 0;
+                    $successRequestCount += (count($result['success']) - $rejectedCount);
                     $result['rejected'] = array_merge($result['rejected'], $rejected);
                 }
 
-                $rejectedCount = isset($rejected) ? count($rejected) : 0;
                 $chunk_count = count($data) ?: 1;
-                Log::info($this->parsingSetting->brand . '- fetching child categories progress chunk = ' . 100 * ($successRequestCount - $rejectedCount) / $chunk_count);
+                Log::info($this->parsingSetting->brand . '- fetching child categories progress chunk = ' . 100 * $successRequestCount / $chunk_count);
 
                 MemoryUtils::monitoringMemory();
                 unset($rez);
@@ -471,7 +472,7 @@ class DetailService
                 gc_collect_cycles();
             };
 
-            $this->rejectedUuids =[];
+            $this->rejectedUuids = [];
             $all_count = count($chunks) ?: 1;
             Log::info($this->parsingSetting->brand . '- fetching categories child progress = ' . 100 * ($i + 1) / $all_count);
             gc_collect_cycles();

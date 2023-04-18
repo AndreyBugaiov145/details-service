@@ -87,61 +87,10 @@ Route::get('/job', function () {
     $JobsService->createPendingCategoriesOrDetailsJobs();
 })->middleware('auth');
 
-Route::get('/p', function () {
-    $endpoint = new ProxyScrape([
-        "timeout" => 8000,
-        "protocol" => "all",
-        "country" => "all",
-        "ssl" => "all",
-        "anonymity" => "all"
-    ]);
-    $proxies1 = $endpoint->get() ?: [];
-    dd($proxies1);
-})->middleware('auth');
-
 Route::get('/pr', function () {
     $JobsService = new ProxyService();
     $r = $JobsService->getProxies();
     dd($r);
-})->middleware('auth');
-
-Route::get('/bc', function () {
-    $client = new \GuzzleHttp\Client([
-        'headers' => [
-            'Connection' => 'close',
-            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-            'Origin' => 'https://www.rockauto.com',
-        ],
-        'Connection' => 'close',
-        CURLOPT_FORBID_REUSE => true,
-        CURLOPT_FRESH_CONNECT => true,
-    ]);
-    $url = 'https://www.rockauto.com/catalog/catalogapi.php';
-   $resault = $client->post(
-        $url,
-        [
-            'timeout' => 5,
-            'connect_timeout' => 10,
-            'form_params' => [
-                'func' => 'getbuyersguide',
-                'scbeenloaded' => true,
-                'api_json_request' => 1,
-            ],
-            'headers' => [
-
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
-            ],
-            'allow_redirects' => false
-        ]);
-dd($resault);
-
-})->middleware('auth');
-
-Route::get('/md', function () {
-    $categoriesDB = CategoryRepository::getLastChildrenCategories('CHEVROLET',2010);
-    $categoriesDBIds = collect($categoriesDB)->pluck('id')->toArray();
-    $categories =  \App\Models\Category::doesntHave('details')->whereIn('id',$categoriesDBIds)->get();
-    dd($categories->toArray());
 })->middleware('auth');
 
 

@@ -51,6 +51,7 @@ class ProxyService
 
     public function fetchAndSaveProxies()
     {
+        Log::debug('fetchAndSaveProxies ');
         $proxies = $this->fetchProxy();
         foreach ($proxies as &$proxy) {
             $proxy = trim($proxy);
@@ -64,6 +65,7 @@ class ProxyService
 
     protected function fetchProxy()
     {
+        Log::debug('fetchProxy');
         try {
             $endpoint = new ProxyScrape($this->opt1);
             $proxies1 = $endpoint->get() ?: [];
@@ -77,6 +79,7 @@ class ProxyService
             $proxyOrg = new ProxyOrg() ;
             $proxies2 = $proxyOrg->getProxies();
         } catch (\Exception $e) {
+            Log::debug('ProxyOrg ERROR');
             $proxies2 = [];
         }
 
@@ -121,6 +124,7 @@ class ProxyService
 
     protected function checkProxyList(array $pr, $chunkCount = 1200)
     {
+        Log::debug('checkProxyList');
         $success = [];
         $failed = [];
         $chunks = array_chunk($pr, $chunkCount, true);
@@ -166,6 +170,7 @@ class ProxyService
 
     protected function getCheckredProxyFromDB()
     {
+        Log::debug('getCheckredProxyFromDB');
         $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
 //        $requests = $this->createAsyncRequestsArr($proxies);
         return $this->checkProxyList($proxies, 2000);
@@ -173,6 +178,7 @@ class ProxyService
 
     public function getWorkingProxyAndUpdateFailedFromDB()
     {
+        Log::debug('getWorkingProxyAndUpdateFailedFromDB');
         $proxies = $this->getCheckredProxyFromDB();
         $this->incrementFailedProxy($proxies['failed']);
 

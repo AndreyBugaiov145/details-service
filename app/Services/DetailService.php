@@ -41,7 +41,7 @@ class DetailService
     public function fetchCategoriesAndDetailsInfo()
     {
         $start = microtime(true);
-        Log::info($this->parsingSetting->brand . '-Start fetching');
+        Log::info($this->parsingSetting->brand . '--Start fetching');
         try {
             $this->attempts = 0;
             $mainCategoriesData = $this->fetchMainCategories();

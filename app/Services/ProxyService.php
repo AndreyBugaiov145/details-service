@@ -9,7 +9,7 @@ use Log;
 class ProxyService
 {
     protected $opt1 = [
-        "timeout" => 8000,
+        "timeout" => 10000,
         "protocol" => "all",
         "country" => "all",
         "ssl" => "all",
@@ -17,7 +17,7 @@ class ProxyService
     ];
 
     protected $connect_timeout = 20;
-    protected $timeout = 10;
+    protected $timeout = 12;
 
     protected $url = 'https://www.rockauto.com/catalog/catalogapi.php';
 
@@ -51,7 +51,12 @@ class ProxyService
 
     public function fetchAndSaveProxies()
     {
+        Log::debug('fetchAndSaveProxies ');
         $proxies = $this->fetchProxy();
+        foreach ($proxies as &$proxy) {
+            $proxy = trim($proxy);
+        }
+
         $result = $this->checkProxyList($proxies);
         $this->saveProxies($result['success']);
 
@@ -60,6 +65,7 @@ class ProxyService
 
     protected function fetchProxy()
     {
+        Log::debug('fetchProxy');
         try {
             $endpoint = new ProxyScrape($this->opt1);
             $proxies1 = $endpoint->get() ?: [];
@@ -73,6 +79,7 @@ class ProxyService
             $proxyOrg = new ProxyOrg() ;
             $proxies2 = $proxyOrg->getProxies();
         } catch (\Exception $e) {
+            Log::debug('ProxyOrg ERROR');
             $proxies2 = [];
         }
 
@@ -108,13 +115,7 @@ class ProxyService
 
                         'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
                     ],
-                    'allow_redirects' => [
-                        'max' => 10,        // allow at most 10 redirects.
-                        'strict' => true,      // use "strict" RFC compliant redirects.
-                        'referer' => true,      // add a Referer header
-                        'protocols' => ['https', 'http'], // only allow https URLs
-                        'track_redirects' => true
-                    ]
+                    'allow_redirects' =>false
                 ]);
         }
 
@@ -123,6 +124,7 @@ class ProxyService
 
     protected function checkProxyList(array $pr, $chunkCount = 1200)
     {
+        Log::debug('checkProxyList');
         $success = [];
         $failed = [];
         $chunks = array_chunk($pr, $chunkCount, true);
@@ -168,6 +170,7 @@ class ProxyService
 
     protected function getCheckredProxyFromDB()
     {
+        Log::debug('getCheckredProxyFromDB');
         $proxies = \App\Models\Proxy::get()->pluck('proxy')->toArray();
 //        $requests = $this->createAsyncRequestsArr($proxies);
         return $this->checkProxyList($proxies, 2000);
@@ -175,6 +178,7 @@ class ProxyService
 
     public function getWorkingProxyAndUpdateFailedFromDB()
     {
+        Log::debug('getWorkingProxyAndUpdateFailedFromDB');
         $proxies = $this->getCheckredProxyFromDB();
         $this->incrementFailedProxy($proxies['failed']);
 

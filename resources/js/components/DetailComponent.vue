@@ -14,7 +14,7 @@
         </td>
 
         <!--      START Analogy Details Modal-->
-        <b-modal :id="'modal'+ detail.id " title="Також вам можуть підійти ці деталі">
+        <b-modal :id="'modal'+ detail.id " title="Сумісність" hide-footer>
             <table class="table table-striped">
                 <thead>
                 <tr>

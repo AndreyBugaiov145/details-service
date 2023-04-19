@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="title" content="Деталі для вашого авто">
-    <meta name="description" content="Тут ви можете знайти будь-які деталі для вашого авто за найнижчими цінами">
+    <meta name="description" content="Зручний каталог запчастин для вашого авто">
     <meta name="keywords" content="Деталі, Деталі для авто, Авто Деталі, Запчастини ,Деталі BUICK,Деталі CHEVROLET,Деталі CHRYSLER,Деталі DODGE,Деталі FORD
     ,Деталі JEEP,Деталі MAZDA,Деталі AUDI,Деталі CADILLAC">
 

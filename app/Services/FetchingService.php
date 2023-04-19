@@ -12,10 +12,10 @@ class FetchingService
     protected $fetchUrl = 'https://www.rockauto.com/catalog/catalogapi.php';
     protected $mainPageUrl = 'https://www.rockauto.com/';
     protected $timeout = 20;
-    protected $connect_timeout = 10;
+    protected $connect_timeout = 15;
     protected $proxies = [];
     protected $proxyService;
-    protected $chunkCount = 750;
+    protected $chunkCount = 500;
 
     public function __construct()
     {
@@ -32,9 +32,10 @@ class FetchingService
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
                 'Origin' => 'https://www.rockauto.com',
             ],
+            'verify' => false,
             'Connection' => 'close',
             CURLOPT_FORBID_REUSE => true,
-            CURLOPT_FRESH_CONNECT => true,
+            'allow_redirects' => false,
         ]);
     }
 
@@ -52,13 +53,13 @@ class FetchingService
         $i = 0;
         $count = $count / 10 > 20 ? $count / 10 : 20;
         while (count($this->proxies) < $count) {
-            $this->proxies = $this->proxyService->getProxies();
+            $this->proxies = array_unique(array_merge($this->proxies, $this->proxyService->getProxies()));
             \Log::info('need count' . $count . '.Get new proxies' . count($this->proxies));
-            $i++ ;
-            if ($i>3){
+            $i++;
+            if ($i > 3) {
                 $i = 0;
                 \Log::info('getProxies SLEEP');
-                sleep(60*5);
+                sleep(60 * 5);
             }
         }
 

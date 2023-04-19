@@ -4,12 +4,6 @@ use App\Http\Controllers\Categories;
 use App\Http\Controllers\Details;
 use App\Http\Controllers\ParsingSettings;
 use App\Http\Controllers\Users;
-use App\Repositories\CategoryRepository;
-use App\Services\CurrencyService;
-use App\Services\DetailService;
-use App\Services\JobsService;
-use App\Services\ProxyService;
-use App\Utils\MemoryUtils;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,6 +16,11 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+
+Route::get('/', function () {
+    return view('home');
+})->name('home');
 
 Route::prefix('login')->group(function () {
     Route::get('/', function () {
@@ -75,23 +74,15 @@ Route::prefix('admin')->group(function () {
 });
 
 
-Route::get('/job', function () {
-    $JobsService = new JobsService();
-    $JobsService->createPendingCategoriesOrDetailsJobs();
-})->middleware('auth');
-
-Route::get('/pr', function () {
-    $JobsService = new ProxyService();
-    $r = $JobsService->getProxies();
-    dd($r);
-})->middleware('auth');
-
-Route::get('/md', function () {
-    $categoriesDB = CategoryRepository::getLastChildrenCategories('BMW',2020);
-    $categoriesDBIds = collect($categoriesDB)->pluck('id')->toArray();
-    dd(count($categoriesDBIds));
-    $categories =  \App\Models\Category::doesntHave('details')->whereIn('id',$categoriesDBIds)->get();
-    dd($categories->toArray());
-})->middleware('auth');
+//Route::get('/job', function () {
+//    $JobsService = new JobsService();
+//    $JobsService->createPendingCategoriesOrDetailsJobs();
+//})->middleware('auth');
+//
+//Route::get('/pr', function () {
+//    $JobsService = new ProxyService();
+//    $r = $JobsService->getProxies();
+//    dd($r);
+//})->middleware('auth');
 
 

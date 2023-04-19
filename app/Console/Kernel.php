@@ -27,9 +27,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
 
-        $schedule->call(function () {
-            Log::info('test schedule');
-        })->everyMinute();
+//        $schedule->call(function () {
+//            Log::info('test schedule');
+//        })->everyMinute();
         // Update UAH currency
         $schedule->call(function () {
             $currencyService = new CurrencyService();
@@ -38,24 +38,19 @@ class Kernel extends ConsoleKernel
 
         // Update UAH currency
         $schedule->call(function () {
-           Proxy::where('fail_count', '>',15)->delete();
+           Proxy::where('fail_count', '>',15)->withoutGlobalScopes()->delete();
         })->monthly();
 
-        //Grabbing
-        $schedule->call(function () {
-            $jobsService = new JobsService();
-            $jobsService->addGrabbingAllCategoriesAndDetailsJobs();
-        })->monthly();
-
-        $schedule->call(function () {
-            $jobsService = new JobsService();
-            $jobsService->addGrabbingAllDetailsJobs();
-        })->weekly();
-
-        $schedule->call(function () {
-            $jobsService = new JobsService();
-            $jobsService->addGrabbingAllDetailsJobs();
-        })->twiceMonthly(10, 20, '22:00');
+//        Grabbing
+//        $schedule->call(function () {
+//            $jobsService = new JobsService();
+//            $jobsService->addGrabbingAllCategoriesAndDetailsJobs();
+//        })->monthly();
+//
+//        $schedule->call(function () {
+//            $jobsService = new JobsService();
+//            $jobsService->addGrabbingAllDetailsJobs();
+//        })->twiceMonthly(10, 20, '23:59');
 
         $schedule->call(function () {
             $jobsService = new JobsService();

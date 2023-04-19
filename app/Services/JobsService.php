@@ -10,40 +10,74 @@ class JobsService
 {
     public function addGrabbingAllCategoriesAndDetailsJobs()
     {
-        ParsingSetting::whereNotNull('brand')->update([
+        ParsingSetting::whereNotNull('brand')->where([
+            ['detail_parsing_status', '!=', ParsingSetting::STATUS_IN_PROGRESS, 'or'],
+            ['category_parsing_status', '!=', ParsingSetting::STATUS_IN_PROGRESS, 'or']
+        ])->update([
             'detail_parsing_status' => ParsingSetting::STATUS_PENDING,
             'category_parsing_status' => ParsingSetting::STATUS_PENDING
         ]);
 
-        $parsingSetting = ParsingSetting::get();
+        $parsingSetting = ParsingSetting::where('category_parsing_status', ParsingSetting::STATUS_PENDING)->get();
+
+        $jobsData = $this->getExistsJobsData();
         foreach ($parsingSetting as $setting) {
-            $job = new GrabbingCategoriesAndDetails($setting);
-            dispatch($job);
+            $jobs = \Arr::where($jobsData, function ($jobData, $key) use ($setting) {
+                return $jobData['job_class'] == GrabbingCategoriesAndDetails::class && $jobData['parserSetting_id'] === $setting->id;
+            });
+            if (count($jobs) < 1) {
+                $job = new GrabbingCategoriesAndDetails($setting);
+                dispatch($job);
+            }
         }
     }
 
     public function addGrabbingAllDetailsJobs()
     {
-        ParsingSetting::whereNotNull('brand')->update(['detail_parsing_status' => ParsingSetting::STATUS_PENDING]);
+        ParsingSetting::whereNotNull('brand')->where([
+            ['detail_parsing_status', '!=', ParsingSetting::STATUS_IN_PROGRESS, 'or'],
+            ['category_parsing_status', '!=', ParsingSetting::STATUS_IN_PROGRESS, 'or']
+        ])->update(['detail_parsing_status' => ParsingSetting::STATUS_PENDING]);
 
-        $parsingSetting = ParsingSetting::get();
+        $parsingSetting = ParsingSetting::where('detail_parsing_status', ParsingSetting::STATUS_PENDING)->get();
+        $jobsData = $this->getExistsJobsData();
+
         foreach ($parsingSetting as $setting) {
-            $job = new GrabbingDetails($setting);
-            dispatch($job);
+            $jobs = \Arr::where($jobsData, function ($jobData, $key) use ($setting) {
+                return $jobData['job_class'] == GrabbingDetails::class && $jobData['parserSetting_id'] === $setting->id;
+            });
+            if (count($jobs) < 1) {
+                $job = new GrabbingDetails($setting);
+                dispatch($job);
+            }
         }
     }
 
     protected function addGrabbingPendingCategoriesAndDetailsJobs(ParsingSetting $parsingSetting)
     {
-        $job = new GrabbingCategoriesAndDetails($parsingSetting);
-        dispatch($job);
 
+        $jobsData = $this->getExistsJobsData();
+
+        $jobs = \Arr::where($jobsData, function ($jobData, $key) use ($parsingSetting) {
+            return $jobData['job_class'] == GrabbingCategoriesAndDetails::class && $jobData['parserSetting_id'] === $parsingSetting->id;
+        });
+        if (count($jobs) < 1) {
+            $job = new GrabbingCategoriesAndDetails($parsingSetting);
+            dispatch($job);
+        }
     }
 
     protected function addGrabbingPendingDetailsJobs(ParsingSetting $parsingSetting)
     {
-        $job = new GrabbingDetails($parsingSetting);
-        dispatch($job);
+        $jobsData = $this->getExistsJobsData();
+
+        $jobs = \Arr::where($jobsData, function ($jobData, $key) use ($parsingSetting) {
+            return $jobData['job_class'] == GrabbingDetails::class && $jobData['parserSetting_id'] === $parsingSetting->id;
+        });
+        if (count($jobs) < 1) {
+            $job = new GrabbingDetails($parsingSetting);
+            dispatch($job);
+        }
     }
 
     public function createPendingCategoriesOrDetailsJobs()
@@ -64,5 +98,24 @@ class JobsService
                 }
             }
         }
+    }
+
+    public function getExistsJobsData()
+    {
+        $jobs = \DB::table('jobs')->get();
+        $jobsData = [];
+
+        foreach ($jobs as $job) {
+            $payload = json_decode($job->payload);
+            $obj = unserialize($payload->data->command);
+            if ($obj::class == GrabbingCategoriesAndDetails::class || $obj::class == GrabbingDetails::class) {
+                $jobsData[] = [
+                    'job_class' => $obj::class,
+                    'parserSetting_id' => $obj->parserSetting->id
+                ];
+            }
+        }
+
+        return $jobsData;
     }
 }

@@ -41,7 +41,7 @@ class Kernel extends ConsoleKernel
            Proxy::where('fail_count', '>',15)->delete();
         })->monthly();
 
-        //Grabbing
+//        Grabbing
 //        $schedule->call(function () {
 //            $jobsService = new JobsService();
 //            $jobsService->addGrabbingAllCategoriesAndDetailsJobs();
@@ -50,17 +50,12 @@ class Kernel extends ConsoleKernel
 //        $schedule->call(function () {
 //            $jobsService = new JobsService();
 //            $jobsService->addGrabbingAllDetailsJobs();
-//        })->weekly();
-//
-//        $schedule->call(function () {
-//            $jobsService = new JobsService();
-//            $jobsService->addGrabbingAllDetailsJobs();
 //        })->twiceMonthly(10, 20, '22:00');
-//
-//        $schedule->call(function () {
-//            $jobsService = new JobsService();
-//            $jobsService->createPendingCategoriesOrDetailsJobs();
-//        })->daily();
+
+        $schedule->call(function () {
+            $jobsService = new JobsService();
+            $jobsService->createPendingCategoriesOrDetailsJobs();
+        })->daily();
 
     }
 

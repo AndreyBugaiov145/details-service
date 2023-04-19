@@ -27,9 +27,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
 
-        $schedule->call(function () {
-            Log::info('test schedule');
-        })->everyMinute();
+//        $schedule->call(function () {
+//            Log::info('test schedule');
+//        })->everyMinute();
         // Update UAH currency
         $schedule->call(function () {
             $currencyService = new CurrencyService();

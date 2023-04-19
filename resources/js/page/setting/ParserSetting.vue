@@ -40,8 +40,8 @@
                 <th scope="col">Показувати клієнтам</th>
                 <th scope="col">Категорії оновлювалися</th>
                 <th scope="col">Категорії поточний статус</th>
-                <th scope="col">Детилі оновлювалися</th>
-                <th scope="col">Детилі поточний статус</th>
+                <th scope="col">Детaлі оновлювалися</th>
+                <th scope="col">Детaлі поточний статус</th>
                 <th scope="col"></th>
             </tr>
             </thead>
@@ -52,9 +52,9 @@
                 <td>{{ parserSetting.car_models }}</td>
                 <td>{{ parserSetting.year }}</td>
                 <td><input class="form-check-input" type="checkbox" id="" disabled :checked="parserSetting.is_show"></td>
-                <td>{{ parserSetting.category_parsing_at }}<span class="btn text-primary" @click="updateCategoryParsingStatus(parserSetting.id)">Оновити Категорії та Детилі</span></td>
+                <td>{{ parserSetting.category_parsing_at }}<span class="btn text-primary" @click="updateCategoryParsingStatus(parserSetting.id)">Оновити Категорії та Детaлі</span></td>
                 <td>{{ parserSetting.category_parsing_status }}</td>
-                <td>{{ parserSetting.detail_parsing_at }}<span class="btn text-primary" @click="updateDetailParsingStatus(parserSetting.id)">Оновити Детилі</span></td>
+                <td>{{ parserSetting.detail_parsing_at }}<span class="btn text-primary" @click="updateDetailParsingStatus(parserSetting.id)">Оновити Детaлі</span></td>
                 <td>{{ parserSetting.detail_parsing_status }}</td>
                 <td>
                     <span class="btn btn-info m-1" @click="showEditModal(parserSetting.id)">Змінити</span>

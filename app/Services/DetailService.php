@@ -413,7 +413,7 @@ class DetailService
         $dataAll = $this->array2Dto1DAndAddUid($dataArr);
         Log::info($this->parsingSetting->brand . '-start fetching child categories count = ' . count($dataAll));
 
-        $chunks = array_chunk($dataAll, 3000);
+        $chunks = array_chunk($dataAll, 2000);
         foreach ($chunks as $i => $data) {
             $this->attempts = 0;
             $successRequestCount = 0;
@@ -647,6 +647,7 @@ class DetailService
     {
         Log::info($this->parsingSetting->brand . '-start fetching Analogy Details', [$detailsArray[0]]);
         $this->attempts = 0;
+        $this->detailsData = null;
         $this->detailsData = [];
 
         MemoryUtils::monitoringMemory();
@@ -655,7 +656,7 @@ class DetailService
         //        grouping details by partkey
         $details = collect($detailsArray);
         $dataDetails = $details->groupBy('partkey');
-        unset($details);
+        $details = null;
         //        saving existing analog parts by key partkey
         $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
             ->where('is_parsing_analogy_details', true)
@@ -674,6 +675,7 @@ class DetailService
             }
         }
         MemoryUtils::monitoringMemory();
+        unset($details);
         unset($existsDetails);
         gc_collect_cycles();
         $data = [];
@@ -683,12 +685,13 @@ class DetailService
 
         }
         MemoryUtils::monitoringMemory();
+        $dataDetails = null;
         unset($dataDetails);
         gc_collect_cycles();
         Log::info($this->parsingSetting->brand . '-start fetching Analogy Details count' . count($data));
 
 
-        $chunks = array_chunk($data, 3000);
+        $chunks = array_chunk($data, 2000);
         foreach ($chunks as $i => $chunk) {
             Log::info($this->parsingSetting->brand . '-start fetching Analogy Details chunk count' . count($chunk));
             $this->attempts = 0;
@@ -757,8 +760,11 @@ class DetailService
 
             }
             MemoryUtils::monitoringMemory();
+            unset($item);
+            unset($html);
             unset($parser);
             unset($analogyDetailsData);
+            gc_collect_cycles();
         }
     }
 

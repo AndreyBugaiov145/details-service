@@ -8,7 +8,7 @@
         <td v-else>{{ detail.total_price_uah }} грн.</td>
         <td v-if="authUser" class="">{{ detail.stock }}</td>
         <td v-if="authUser">
-            <span class="btn btn-info mb-1" @click="showDetailModal"> Редагуваты</span>
+            <span class="btn btn-info mb-1" @click="showDetailModal"> Редагувати</span>
             <span class="btn btn-info mb-1" @click="showAddAnalogyDetailModal"> Додати аналогову деталь</span>
             <span class="btn btn-danger " @click="deleteDetail">Видалити</span>
         </td>
@@ -53,7 +53,7 @@
                     <textarea type="text" v-model.trim="newDetail.short_description" class="form-control" id="newDetail-short_description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="newDetail-stock">Залышок</label>
+                    <label for="newDetail-stock">Залишок</label>
                     <input type="text" v-model.trim="newDetail.stock" class="form-control" id="newDetail-stock">
                 </div>
                 <div class="form-group">

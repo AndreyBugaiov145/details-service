@@ -42,25 +42,25 @@ class Kernel extends ConsoleKernel
         })->monthly();
 
         //Grabbing
-        $schedule->call(function () {
-            $jobsService = new JobsService();
-            $jobsService->addGrabbingAllCategoriesAndDetailsJobs();
-        })->monthly();
-
-        $schedule->call(function () {
-            $jobsService = new JobsService();
-            $jobsService->addGrabbingAllDetailsJobs();
-        })->weekly();
-
-        $schedule->call(function () {
-            $jobsService = new JobsService();
-            $jobsService->addGrabbingAllDetailsJobs();
-        })->twiceMonthly(10, 20, '22:00');
-
-        $schedule->call(function () {
-            $jobsService = new JobsService();
-            $jobsService->createPendingCategoriesOrDetailsJobs();
-        })->daily();
+//        $schedule->call(function () {
+//            $jobsService = new JobsService();
+//            $jobsService->addGrabbingAllCategoriesAndDetailsJobs();
+//        })->monthly();
+//
+//        $schedule->call(function () {
+//            $jobsService = new JobsService();
+//            $jobsService->addGrabbingAllDetailsJobs();
+//        })->weekly();
+//
+//        $schedule->call(function () {
+//            $jobsService = new JobsService();
+//            $jobsService->addGrabbingAllDetailsJobs();
+//        })->twiceMonthly(10, 20, '22:00');
+//
+//        $schedule->call(function () {
+//            $jobsService = new JobsService();
+//            $jobsService->createPendingCategoriesOrDetailsJobs();
+//        })->daily();
 
     }
 

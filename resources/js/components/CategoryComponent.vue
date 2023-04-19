@@ -30,7 +30,7 @@
                     <th scope="col">Опис</th>
                     <th scope="col">ціна</th>
                     <th v-if="authUser" scope="col">Залишок</th>
-                    <th v-if="authUser" scope="col">Редагуваты</th>
+                    <th v-if="authUser" scope="col">Редагувати</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -47,7 +47,7 @@
             <!--   START     Add  Detail Modal-->
             <div>
                 <b-modal :id="'addDetail' + category.id"
-                         title="Додаты деталь"
+                         title="Додати деталь"
                          @hidden=" newDetail = {}"
                          @ok="addDetail"
                 >
@@ -65,7 +65,7 @@
                             <input type="text" v-model.trim="newDetail.s_number" class="form-control" id="newDetail-s_number">
                         </div>
                         <div class="form-group">
-                            <label for="newDetail-stock">Залышок</label>
+                            <label for="newDetail-stock">Залишок</label>
                             <input type="text" v-model.trim="newDetail.stock" class="form-control" id="newDetail-stock">
                         </div>
                         <div class="form-group">

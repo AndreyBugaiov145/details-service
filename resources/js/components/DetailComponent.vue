@@ -79,7 +79,7 @@
 
         <!--   START     Add Analogue Detail Modal-->
         <b-modal :id="'addAnalogyDetail' + detail.id"
-                 title="Додаты аналогову деталь"
+                 title="Додати аналогову деталь"
                  @hidden=" analogyDetail = {}"
                  @ok="addAnalogyDetail"
         >

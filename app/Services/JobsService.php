@@ -44,7 +44,7 @@ class JobsService
 
         foreach ($parsingSetting as $setting) {
             $jobs = \Arr::where($jobsData, function ($jobData, $key) use ($setting) {
-                return $jobData['job_class'] == GrabbingDetails::class && $jobData['parserSetting_id'] === $setting->id;
+                return $jobData['parserSetting_id'] === $setting->id;
             });
             if (count($jobs) < 1) {
                 $job = new GrabbingDetails($setting);
@@ -72,7 +72,7 @@ class JobsService
         $jobsData = $this->getExistsJobsData();
 
         $jobs = \Arr::where($jobsData, function ($jobData, $key) use ($parsingSetting) {
-            return $jobData['job_class'] == GrabbingDetails::class && $jobData['parserSetting_id'] === $parsingSetting->id;
+            return $jobData['parserSetting_id'] === $parsingSetting->id;
         });
         if (count($jobs) < 1) {
             $job = new GrabbingDetails($parsingSetting);

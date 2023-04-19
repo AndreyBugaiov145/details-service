@@ -12,7 +12,7 @@ class CreateParsingJobs extends Command
      *
      * @var string
      */
-    protected $signature = 'command:name';
+    protected $signature = 'parsing:job';
 
     /**
      * The console command description.

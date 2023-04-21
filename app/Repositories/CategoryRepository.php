@@ -59,7 +59,7 @@ class CategoryRepository
                 $join->on('parsing_settings.brand', 'like', 'categories.title')
                     ->where('parsing_settings.is_show', true)
                     ->whereNull('deleted_at');
-            })->get();
+            })->orderByDesc('title')->get();
 
         return $categories->unique('id');
     }

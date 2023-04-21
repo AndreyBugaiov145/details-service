@@ -677,7 +677,7 @@ class DetailService
                         'is_parsing_analogy_details' => true
                     ]);
                 }
-                $dataDetails->forget($key);
+                $dataDetails->forget($existsDetail->partkey);
             }
         }
         MemoryUtils::monitoringMemory();

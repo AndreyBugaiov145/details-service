@@ -662,7 +662,7 @@ class DetailService
 //            ->where('is_parsing_analogy_details', true)
 //            ->get();
 //        $existsDetails = $existsDetails->groupBy('partkey');
-        $existsDetails = DB::table('details')
+        $existsDetails = \DB::table('details')
             ->select('partkey', DB::raw('GROUP_CONCAT(DISTINCT analogy_details SEPARATOR ",") AS analogy_details'))
             ->groupBy('partkey')
             ->whereIn('partkey', array_keys($dataDetails->toArray()))

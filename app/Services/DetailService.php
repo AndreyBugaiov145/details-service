@@ -658,16 +658,21 @@ class DetailService
         $dataDetails = $details->groupBy('partkey');
         $details = null;
         //        saving existing analog parts by key partkey
-        $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
-            ->where('is_parsing_analogy_details', true)
-            ->get();
+//        $existsDetails = Detail::whereIn('partkey', array_keys($dataDetails->toArray()))
+//            ->where('is_parsing_analogy_details', true)
+//            ->get();
+//        $existsDetails = $existsDetails->groupBy('partkey');
+        $existsDetails = DB::table('details')
+            ->select('partkey', DB::raw('GROUP_CONCAT(DISTINCT analogy_details SEPARATOR ",") AS analogy_details'))
+            ->groupBy('partkey')
+            ->whereIn('partkey', array_keys($dataDetails->toArray()))
+            ->get()->toArray();
 
-        $existsDetails = $existsDetails->groupBy('partkey');
         foreach ($existsDetails as $key => $existsDetail) {
-            if (isset($dataDetails[$key])) {
-                foreach ($dataDetails[$key] as $dataDetail) {
+            if (isset($dataDetails[$existsDetail['partkey']])) {
+                foreach ($dataDetails[$existsDetail['partkey']] as $dataDetail) {
                     $this->detailsData[] = array_merge($dataDetail, [
-                        'analogy_details' => json_encode($existsDetail[0]->analogy_details),
+                        'analogy_details' => json_encode($existsDetail['analogy_details']),
                         'is_parsing_analogy_details' => true
                     ]);
                 }

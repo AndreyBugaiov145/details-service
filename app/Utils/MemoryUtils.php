@@ -26,6 +26,7 @@ class MemoryUtils
 
     static public function monitoringMemory()
     {
+        self::loggingUsedMemory();
         if (self::$memory < memory_get_usage()) {
             self::$memory = memory_get_usage();
         }

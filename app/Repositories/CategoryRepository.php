@@ -82,18 +82,24 @@ class CategoryRepository
             return collect();
         }
 
-        $categories = Category::where('parent_id', $id)->select(['categories.title', 'categories.id'])
-            ->join('parsing_settings', function (JoinClause $join) use ($parentMainCategory) {
-                $join->on('parsing_settings.year', 'categories.title')
-                    ->where('parsing_settings.brand', 'like', $parentMainCategory->title)
-                    ->where('parsing_settings.is_show', true);
-            })->orderByDesc('title')->get();
+        $categories = Category::where('parent_id', $id)->orderByDesc('title')->get();
+        $parsingSetting = ParsingSetting::where('brand', $parentMainCategory->title)->where('parsing_settings.is_show', true)->get()->pluck('year')->toArray();
+//        $categories = Category::where('parent_id', $id)->select(['categories.title', 'categories.id'])
+//            ->join('parsing_settings', function (JoinClause $join) use ($parentMainCategory) {
+//                $join->on('parsing_settings.year', 'categories.title')
+//                    ->where('parsing_settings.brand', 'like', $parentMainCategory->title)
+//                    ->where('parsing_settings.is_show', true);
+//            })->orderByDesc('title')->get();
 
-        $categories = $categories->unique('id')->map(function ($item) {
+        $categories = $categories->unique('id')
+            ->filter(function ($item) use ($parsingSetting) {
+            $item->child_type = self::CHILD_TYPE_MODEL;
+            return  in_array($item->title,$parsingSetting);
+        })
+            ->map(function ($item) {
             $item->child_type = self::CHILD_TYPE_MODEL;
             return $item;
         });
-
 
         return $categories;
     }
@@ -121,10 +127,17 @@ class CategoryRepository
         if (strlen($parsingSetting->car_models)) {
             $categories = $categories->filter(function ($category, $key) use ($parsingSetting) {
                 return str_contains($parsingSetting->car_models, $category->title);
+            })->each(function ($item) {
+                return $item;
             });
         }
 
-        return $categories->unique('id');
+        $categoriesData = collect();
+        $categories->unique('id')->each(function ($item) use ($categoriesData) {
+            $categoriesData->add($item);
+        });
+
+        return $categoriesData;
     }
 
     public static function getChildCategories($id)

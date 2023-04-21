@@ -670,10 +670,10 @@ class DetailService
             ->get()->toArray();
 
         foreach ($existsDetails as $key => $existsDetail) {
-            if (isset($dataDetails[$existsDetail['partkey']])) {
-                foreach ($dataDetails[$existsDetail['partkey']] as $dataDetail) {
+            if (isset($dataDetails[$existsDetail->partkey])) {
+                foreach ($dataDetails[$existsDetail->partkey] as $dataDetail) {
                     $this->detailsData[] = array_merge($dataDetail, [
-                        'analogy_details' => json_encode($existsDetail['analogy_details']),
+                        'analogy_details' => $existsDetail->analogy_details,
                         'is_parsing_analogy_details' => true
                     ]);
                 }

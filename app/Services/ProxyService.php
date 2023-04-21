@@ -145,10 +145,12 @@ class ProxyService
                 unset($promise);
                 unset($requests);
                 unset($requests);
-                unset($this->httpClient);
-                $this->httpClient = false;
+
                 gc_collect_cycles();
             }
+            unset($this->httpClient);
+            $this->httpClient = false;
+            gc_collect_cycles();
         } catch (\GuzzleHttp\Exception\ConnectException $e) {
             \Log::critical($e->getMessage(), $e->getRequest());
         }

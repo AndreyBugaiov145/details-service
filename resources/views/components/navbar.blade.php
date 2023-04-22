@@ -15,7 +15,7 @@
     </ul>
     <div class="d-flex justify-content-end">
        <span style="font-weight: 600"> Курс валют  &nbsp; &nbsp; </span>
-        @foreach (  $currencies as $i => $current)
+        @foreach (   $currencies = \App\Models\Currency::get() as $i => $current)
             <span class="bi-text-right">{{$current->rate}}{{$current->symbol}}</span>
             @if($i < (count($currencies) - 1))
                 <span>=</span>

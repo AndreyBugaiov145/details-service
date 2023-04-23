@@ -91,7 +91,7 @@ class CategoryRepository
 //                    ->where('parsing_settings.is_show', true);
 //            })->orderByDesc('title')->get();
         $categoriesData = collect();
-        $categories = $categories->unique('id')
+        $categories->unique('id')
             ->filter(function ($item) use ($parsingSetting) {
             $item->child_type = self::CHILD_TYPE_MODEL;
             return  in_array($item->title,$parsingSetting);
@@ -103,7 +103,7 @@ class CategoryRepository
                 $categoriesData->add($item);
             });
 
-        return $categories;
+        return $categoriesData;
     }
 
     public static function getChildMainModelsCategories($id)

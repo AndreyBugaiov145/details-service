@@ -90,7 +90,7 @@ class CategoryRepository
 //                    ->where('parsing_settings.brand', 'like', $parentMainCategory->title)
 //                    ->where('parsing_settings.is_show', true);
 //            })->orderByDesc('title')->get();
-
+        $categoriesData = collect();
         $categories = $categories->unique('id')
             ->filter(function ($item) use ($parsingSetting) {
             $item->child_type = self::CHILD_TYPE_MODEL;
@@ -99,7 +99,9 @@ class CategoryRepository
             ->map(function ($item) {
             $item->child_type = self::CHILD_TYPE_MODEL;
             return $item;
-        });
+        })->each(function ($item) use ($categoriesData) {
+                $categoriesData->add($item);
+            });
 
         return $categories;
     }

@@ -51,7 +51,7 @@ class Detail extends Model
 {
     use HasFactory;
 
-    protected $appends = ['total_price_usd', 'total_price_uah','isDisabled'];
+    protected $appends = ['total_price_usd', 'total_price_uah', 'isDisabled'];
 
     public static $withoutAppends = false;
 
@@ -85,12 +85,12 @@ class Detail extends Model
 
     public function getTotalPriceUsdAttribute()
     {
-        return round( $this->price + $this->us_shipping_price + $this->ua_shipping_price + $this->price_markup,0);
+        return $this->price + $this->us_shipping_price + $this->ua_shipping_price + $this->price_markup;
     }
 
-    public function getIsDisabledAttribute() :bool
+    public function getIsDisabledAttribute(): bool
     {
-        return $this->price  == 0;
+        return $this->price == 0;
     }
 
 
@@ -98,10 +98,11 @@ class Detail extends Model
     {
         $cf = optional(Currency::where('code', Currency::UAH_CODE)->first())->rate;
 
-        return $this->total_price_usd * $cf;
+        return round($this->total_price_usd * $cf, 0);
     }
 
-    public function getAppends(){
+    public function getAppends()
+    {
 
         return $this->appends;
     }
@@ -115,7 +116,7 @@ class Detail extends Model
 
     protected function getArrayableAppends()
     {
-        if (self::$withoutAppends){
+        if (self::$withoutAppends) {
             return [];
         }
 

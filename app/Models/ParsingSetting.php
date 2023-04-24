@@ -56,12 +56,14 @@ class ParsingSetting extends Model
         'detail_parsing_at'
     ];
 
-    public function getCategoryParsingAtAttribute($value) {
-        return Carbon::parse($value)->format('Y-m-d G:i:s');
+    public function getCategoryParsingAtAttribute($value)
+    {
+        return Carbon::parse($value)->timezone('Europe/Istanbul')->format('Y-m-d G:i:s');
     }
 
-    public function getDetailParsingAtAttribute($value) {
-        return Carbon::parse($value)->format('Y-m-d G:i:s');
+    public function getDetailParsingAtAttribute($value)
+    {
+        return Carbon::parse($value)->timezone('Europe/Istanbul')->format('Y-m-d G:i:s');
     }
 
 }

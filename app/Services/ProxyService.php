@@ -67,6 +67,7 @@ class ProxyService
     {
         Log::debug('fetchProxy');
         try {
+            Log::debug('fetchProxy ProxyScrape');
             $endpoint = new ProxyScrape($this->opt1);
             $proxies1 = $endpoint->get() ?: [];
         } catch (\Exception $e) {
@@ -76,6 +77,8 @@ class ProxyService
         }
 
         try {
+            Log::debug('fetchProxy ProxyOrg');
+
             $proxyOrg = new ProxyOrg() ;
             $proxies2 = $proxyOrg->getProxies();
         } catch (\Exception $e) {
@@ -88,6 +91,7 @@ class ProxyService
         unset($endpoint);
         unset($proxyOrg);
         gc_collect_cycles();
+        Log::debug('fetchProxy end');
 
         return array_merge($proxies1, $proxies2);
     }
@@ -145,10 +149,12 @@ class ProxyService
                 unset($promise);
                 unset($requests);
                 unset($requests);
-                unset($this->httpClient);
-                $this->httpClient = false;
+
                 gc_collect_cycles();
             }
+            unset($this->httpClient);
+            $this->httpClient = false;
+            gc_collect_cycles();
         } catch (\GuzzleHttp\Exception\ConnectException $e) {
             \Log::critical($e->getMessage(), $e->getRequest());
         }

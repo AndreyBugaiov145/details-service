@@ -55,7 +55,7 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             $jobsService = new JobsService();
             $jobsService->createPendingCategoriesOrDetailsJobs();
-        })->daily();
+        })->everyFourHours();
 
     }
 

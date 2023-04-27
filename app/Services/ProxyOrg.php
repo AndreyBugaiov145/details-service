@@ -15,6 +15,8 @@ class ProxyOrg
                 'Connection' => 'close',
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
             ],
+            'timeout' => 10,
+            'connect_timeout' => 10,
             'Connection' => 'close',
             CURLOPT_FORBID_REUSE => true,
             CURLOPT_FRESH_CONNECT => true,

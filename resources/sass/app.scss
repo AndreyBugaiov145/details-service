@@ -36,8 +36,7 @@ nav{
 }
 .nav-client{
     //background-color: red;
-    //background-image:url("{{ asset('images/logo.png')}}");
-    background-image:url('/images/logo2.png');
+    background-image:url("../images/logo2.png");
     background-size: 30%;
     background-repeat: no-repeat;
     background-position: center center;

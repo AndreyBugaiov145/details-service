@@ -48,12 +48,16 @@ class FetchingService
         return $this->httpClient;
     }
 
-    protected function getProxies(int $count = 15)
+    public function setProxies($proxies = []){
+        $this->proxies = $proxies;
+    }
+
+    public function getProxies(int $count = 15)
     {
         $i = 0;
         $count = $count / 10 > 20 ? $count / 10 : 20;
         while (count($this->proxies) < $count) {
-            $this->proxies = array_unique(array_merge($this->proxies, $this->proxyService->getProxies()));
+            $this->setProxies (array_unique(array_merge($this->proxies, $this->proxyService->getProxies())));
             \Log::info('need count' . $count . '.Get new proxies' . count($this->proxies));
             $i++;
             if ($i > 3) {
@@ -206,6 +210,16 @@ class FetchingService
         ]);
     }
 
+    protected function getAsyncRequestDetailEOM($data, string $proxy)
+    {
+        return $this->getHttpClient()->getAsync($data['info_link'], [
+            'headers' => $this->getHeaders(),
+            'timeout' => $this->timeout,
+            'connect_timeout' => $this->connect_timeout,
+            'proxy' => $proxy,
+        ]);
+    }
+
     public function getAsyncDetailsBuyersGuid(array $data)
     {
         $failedProxy = [];
@@ -259,5 +273,58 @@ class FetchingService
         return $result;
     }
 
+
+    public function getAsyncDetailsOEM(array $data)
+    {
+        $failedProxy = [];
+
+        $chunks = array_chunk($data, $this->chunkCount);
+        $result = [];
+
+        foreach ($chunks as $i => $chunk) {
+            $promises = [];
+            $proxies = array_values($this->getProxies(count($chunk)));
+            do {
+                $proxies = array_merge($proxies, $proxies);
+            } while (count($proxies) / count($chunk) < 1);
+
+            MemoryUtils::monitoringMemory();
+            gc_collect_cycles();
+
+            $j = 0;
+            foreach ($chunk as $item) {
+                $uid = $item['partkey'];
+                $key = $uid . '|' . $proxies[$j];
+                $promises[$key] = $this->getAsyncRequestDetailEOM($item, $proxies[$j]);
+                $j++;
+            }
+
+            $responses = Promise\settle($promises)->wait();
+            foreach ($responses as $key => $responseArr) {
+                try {
+                    [$uid, $proxy] = explode('|', $key);
+                } catch (\Exception $e) {
+
+                }
+                $result[$uid] = $responseArr;
+                if ($responseArr['state'] === 'rejected') {
+                    $failedProxy[] = $proxy;
+                    $this->deleteProxy($proxy);
+                }
+            }
+            $this->proxyService->incrementFailedProxy($failedProxy);
+            \Log::info('Request sending progress ' . 100 * ($i + 1) / count($chunks));
+
+            unset($responses);
+            unset($promises);
+            unset($this->httpClient);
+            $this->httpClient = false;
+            gc_collect_cycles();
+        }
+        MemoryUtils::monitoringMemory();
+        gc_collect_cycles();
+
+        return $result;
+    }
 
 }

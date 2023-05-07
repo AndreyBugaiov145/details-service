@@ -69,6 +69,8 @@ class Detail extends Model
         'currency_id',
         'stock',
         'partkey',
+        'info_link',
+        'is_fetched_i_n',
         'is_manual_added',
         'analogy_details',
     ];

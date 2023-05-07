@@ -75,12 +75,26 @@ class DetailService
 
             MemoryUtils::monitoringMemory();
 
-            $detailsDataArrFromDB = $this->getDetails($this->detailsData);
+            $categoryIds = array_map(function ($details) {
+                if (isset($details[0])) {
+                    return $details[0]['category_id'];
+                }
+                return 0;
+            }, $this->detailsData);
+            $detailsDataArrFromDB = $this->getDetailsNoFetchAnalogy($categoryIds);
             if (count($detailsDataArrFromDB)) {
                 $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
-                Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
+                Log::info($this->parsingSetting->brand . '-start saving Analogy details.', $this->detailsData[0]);
                 MemoryUtils::monitoringMemory();
-                $this->saveDetails($this->detailsData);
+                $this->saveDetails($this->detailsData, true);
+            }
+
+            $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
+            if (count($detailsDataArrFromDB)) {
+                $this->fetchAndMergeToDetailEOMNumbers($detailsDataArrFromDB);
+                Log::info($this->parsingSetting->brand . '-start saving EOMNumbers details.', $this->detailsData[0]);
+                MemoryUtils::monitoringMemory();
+                $this->saveDetails($this->detailsData, false, true);
             }
         } catch (\Exception $e) {
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
@@ -125,12 +139,26 @@ class DetailService
             Log::info($this->parsingSetting->brand . '-Details count' . count($allDetailsDataArr));
             $this->saveDetails($allDetailsDataArr);
 
-            $detailsDataArr = $this->getDetails($this->detailsData);
+            $categoryIds = array_map(function ($details) {
+                if (isset($details[0])) {
+                    return $details[0]['category_id'];
+                }
+                return 0;
+            }, $this->detailsData);
+            $detailsDataArr = $this->getDetailsNoFetchAnalogy($categoryIds);
             Log::info($this->parsingSetting->brand . '-Details count need fetch Analogy Details' . count($detailsDataArr));
             if (count($detailsDataArr)) {
                 $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
                 Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
-                $this->saveDetails($this->detailsData);
+                $this->saveDetails($this->detailsData, true);
+            }
+
+            $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
+            if (count($detailsDataArrFromDB)) {
+                $this->fetchAndMergeToDetailEOMNumbers($detailsDataArrFromDB);
+                Log::info($this->parsingSetting->brand . '-start saving EOMNumbers details.', $this->detailsData[0]);
+                MemoryUtils::monitoringMemory();
+                $this->saveDetails($this->detailsData, false, true);
             }
 
         } catch (\Exception $e) {
@@ -189,6 +217,7 @@ class DetailService
     {
         Log::info($this->parsingSetting->brand . '-start fetching main categories');
         do {
+            $this->fetchProxyIfNeed();
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
             }
@@ -216,6 +245,7 @@ class DetailService
         $result = $this->fetchRequestCategories($data);
         Log::info($this->parsingSetting->brand . '-fetching years by main categories result', $result);
 
+        $this->fetchProxyIfNeed();
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
             Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
@@ -223,6 +253,7 @@ class DetailService
 
         while (count($result['rejected'])) {
             $this->attempts++;
+            $this->fetchProxyIfNeed();
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
             }
@@ -261,6 +292,7 @@ class DetailService
         $result = $this->fetchRequestCategories($data);
         Log::info($this->parsingSetting->brand . '-start fetching  Car Models categories result', $result);
 
+        $this->fetchProxyIfNeed();
         if ($this->attempts > $this->max_attempts) {
             throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
             Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
@@ -268,6 +300,8 @@ class DetailService
 
         while (count($result['rejected'])) {
             $this->attempts++;
+
+            $this->fetchProxyIfNeed();
             if ($this->attempts > $this->max_attempts) {
                 throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
             }
@@ -433,6 +467,7 @@ class DetailService
             unset($result['success']);
             gc_collect_cycles();
 
+            $this->fetchProxyIfNeed();
             if ($this->attempts > $this->max_attempts) {
                 Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $data);
                 throw new GrabberException("Failed fetchMainYearsCategories. attempts > $this->attempts");
@@ -443,6 +478,7 @@ class DetailService
                 gc_collect_cycles();
                 $this->attempts++;
 
+                $this->fetchProxyIfNeed();
                 if ($this->attempts > $this->max_attempts) {
                     throw new GrabberException("Failed fetching main categories. attempts > $this->attempts");
                 }
@@ -593,14 +629,25 @@ class DetailService
         gc_collect_cycles();
     }
 
-    protected function saveDetails(array $detailsData)
+    protected function saveDetails(array $detailsData, $isSaveAnalogyDetails = false, $isSaveEOM = false)
     {
         MemoryUtils::monitoringMemory();
         Log::info($this->parsingSetting->brand . '-Saving details', ArrayUtils::getFirstItem($detailsData));
         $chunks = array_chunk($detailsData, 1000);
 
+        $changeData = ['price', 'short_description', 'info_link'];
+        if ($isSaveAnalogyDetails) {
+            $changeData[] = 'analogy_details';
+            $changeData[] = 'is_parsing_analogy_details';
+        }
+
+        if ($isSaveEOM) {
+            $changeData[] = 'is_fetched_i_n';
+            $changeData[] = 'interchange_numbers';
+        }
+
         foreach ($chunks as $chunk) {
-            Detail::upsert($chunk, ['title', 'category_id']);
+            Detail::upsert($chunk, ['title', 'category_id', 'partkey'], $changeData);
         }
         MemoryUtils::monitoringMemory();
         gc_collect_cycles();
@@ -615,15 +662,8 @@ class DetailService
         return true;
     }
 
-    protected function getDetails($detailsData): array
+    protected function getDetailsNoFetchAnalogy($categoryIds): array
     {
-        $categoryIds = array_map(function ($details) {
-            if (isset($details[0])) {
-                return $details[0]['category_id'];
-            }
-            return 0;
-        }, $detailsData);
-
         $detailsArr = Detail::select([
             'title',
             'category_id',
@@ -637,6 +677,29 @@ class DetailService
             'analogy_details',
         ])->withoutAppends()->whereIn('category_id', $categoryIds)
             ->where([['is_parsing_analogy_details', false], ['is_manual_added', false]])->get()->toArray();
+
+        MemoryUtils::monitoringMemory();
+        gc_collect_cycles();
+
+        return $detailsArr;
+    }
+
+    protected function getDetailsNoFetchEOM($categoryIds): array
+    {
+        $detailsArr = Detail::select([
+            'title',
+            'category_id',
+            'price',
+            'short_description',
+            's_number',
+            'partkey',
+            'currency_id',
+            'is_parsing_analogy_details',
+            'interchange_numbers',
+            'info_link',
+            'is_fetched_i_n',
+        ])->withoutAppends()->whereIn('category_id', $categoryIds)
+            ->where([['is_fetched_i_n', false], ['is_manual_added', false]])->get()->toArray();
 
         MemoryUtils::monitoringMemory();
         gc_collect_cycles();
@@ -664,7 +727,7 @@ class DetailService
 //            ->get();
 //        $existsDetails = $existsDetails->groupBy('partkey');
         $existsDetails = DB::table('details')
-            ->select('partkey', DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT analogy_details SEPARATOR "~~~"), "~~~", 1) AS analogy_details'))
+            ->select(['partkey', DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT analogy_details SEPARATOR "~~~"), "~~~", 1) AS analogy_details')])
             ->groupBy('partkey')
             ->where('is_parsing_analogy_details', true)
             ->whereNotNull('analogy_details')
@@ -713,6 +776,7 @@ class DetailService
             unset($result['success']);
             gc_collect_cycles();
 
+            $this->fetchProxyIfNeed();
             if ($this->attempts > $this->max_attempts) {
                 Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $chunk);
                 throw new GrabberException("Failed fetchAndMergeToDetailAnalogyDetails. attempts > $this->attempts");
@@ -722,6 +786,8 @@ class DetailService
                 MemoryUtils::monitoringMemory();
                 gc_collect_cycles();
                 $this->attempts++;
+
+                $this->fetchProxyIfNeed();
                 if ($this->attempts > $this->max_attempts) {
                     throw new GrabberException("Failed fetching AnalogyDetails. attempts > $this->attempts");
                 }
@@ -741,6 +807,111 @@ class DetailService
 
             $all_count = count($chunks) ?: 1;
             Log::info($this->parsingSetting->brand . '- fetching AnalogyDetails  progress = ' . 100 * ($i + 1) / $all_count);
+            gc_collect_cycles();
+        }
+        unset($chunks);
+        unset($data);
+        gc_collect_cycles();
+    }
+
+    protected function fetchAndMergeToDetailEOMNumbers(array $detailsArray)
+    {
+        Log::info($this->parsingSetting->brand . '-start fetching EOMNumbers', ArrayUtils::getFirstItem($detailsArray));
+        $this->attempts = 0;
+        $this->detailsData = null;
+        $this->detailsData = [];
+
+        MemoryUtils::monitoringMemory();
+        gc_collect_cycles();
+
+        //        grouping details by partkey
+        $details = collect($detailsArray);
+        $dataDetails = $details->groupBy('partkey');
+        $details = null;
+
+        $existsDetails = DB::table('details')
+            ->select(['partkey', DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT interchange_numbers SEPARATOR "~~~"), "~~~", 1) AS interchange_numbers')])
+            ->groupBy('partkey')
+            ->where('is_fetched_i_n', true)
+            ->whereIn('partkey', array_keys($dataDetails->toArray()))
+            ->get()->toArray();
+
+        foreach ($existsDetails as $key => $existsDetail) {
+            if (isset($dataDetails[$existsDetail->partkey])) {
+                foreach ($dataDetails[$existsDetail->partkey] as $dataDetail) {
+                    $this->detailsData[] = array_merge($dataDetail, [
+                        'interchange_numbers' => $existsDetail->interchange_numbers,
+                        'is_fetched_i_n' => true
+                    ]);
+                }
+                $dataDetails->forget($existsDetail->partkey);
+            }
+        }
+
+        MemoryUtils::monitoringMemory();
+        unset($details);
+        unset($existsDetails);
+        gc_collect_cycles();
+        $data = [];
+        foreach ($dataDetails->toArray() as $groupKey => $group) {
+            $group['partkey'] = $groupKey;
+            $group['info_link'] = $group[0]['info_link'];
+            $data[$groupKey] = $group;
+
+        }
+        MemoryUtils::monitoringMemory();
+        $dataDetails = null;
+        unset($dataDetails);
+        gc_collect_cycles();
+        Log::info($this->parsingSetting->brand . '-start fetching EOMNumbers count' . count($data));
+
+
+        $chunks = array_chunk($data, 2000);
+        foreach ($chunks as $i => $chunk) {
+            Log::info($this->parsingSetting->brand . '-start fetching EOMNumbers chunk count' . count($chunk));
+            $this->attempts = 0;
+            $successRequestCount = 0;
+
+            $result = $this->fetchRequestEOMNumbers($chunk);
+            if (count($result['success'])) {
+                $successRequestCount += count($result['success']);
+                $this->getEOMDetailsData($result['success'], $data);
+            }
+
+            unset($result['success']);
+            gc_collect_cycles();
+
+            $this->fetchProxyIfNeed();
+            if ($this->attempts > $this->max_attempts) {
+                Log::critical($this->parsingSetting->brand . '-Faeil max_attempts', $chunk);
+                throw new GrabberException("Failed fetch EOMNumbers . attempts > $this->attempts");
+            }
+
+            while (count($result['rejected'])) {
+                MemoryUtils::monitoringMemory();
+                gc_collect_cycles();
+                $this->attempts++;
+
+                $this->fetchProxyIfNeed();
+                if ($this->attempts > $this->max_attempts) {
+                    throw new GrabberException("Failed fetching EOMNumbers. attempts > $this->attempts");
+                }
+                $result = $this->fetchRequestEOMNumbers($result['rejected']);
+                if (count($result['success'])) {
+                    $successRequestCount += count($result['success']);
+                    $this->getEOMDetailsData($result['success'], $data);
+                }
+
+                $chunk_count = count($chunk) ?: 1;
+                Log::info($this->parsingSetting->brand . '- fetching EOMNumbers progress chunk = ' . 100 * $successRequestCount / $chunk_count);
+
+                MemoryUtils::monitoringMemory();
+                unset($result['success']);
+                gc_collect_cycles();
+            }
+
+            $all_count = count($chunks) ?: 1;
+            Log::info($this->parsingSetting->brand . '- fetching EOMNumbers  progress = ' . 100 * ($i + 1) / $all_count);
             gc_collect_cycles();
         }
         unset($chunks);
@@ -776,6 +947,34 @@ class DetailService
         }
     }
 
+    public function getEOMDetailsData($result, $data)
+    {
+        foreach ($result as $key => $responseArr) {
+            $html = (string)$responseArr['value']->getBody();
+
+            $item = Arr::first($data, function ($item) use ($key) {
+                return $item['partkey'] == $key;
+            });
+            unset($item['partkey']);
+            unset($item['info_link']);
+
+            $parser = new ParserService($html);
+            $EOMNumbers = $parser->getEOMNumbersDetails();
+
+            foreach ($item as $detail) {
+                $this->detailsData[] = array_merge($detail, [
+                    'interchange_numbers' => $EOMNumbers,
+                    'is_fetched_i_n' => true
+                ]);
+
+            }
+            MemoryUtils::monitoringMemory();
+            unset($item);
+            unset($html);
+            unset($parser);
+            gc_collect_cycles();
+        }
+    }
 
     protected function fetchRequestAnalogyDetails($data)
     {
@@ -799,5 +998,36 @@ class DetailService
             'success' => $successCategoryData,
             'rejected' => $rejectedCategoryData,
         ];
+    }
+
+    protected function fetchRequestEOMNumbers($data)
+    {
+        MemoryUtils::monitoringMemory();
+        $this->request_count += count($data);
+        $rejectedCategoryData = [];
+        $successCategoryData = [];
+        $result = $this->grabber->getAsyncDetailsOEM($data);
+        MemoryUtils::monitoringMemory();
+        foreach ($result as $key => $responseArr) {
+            if ($responseArr['state'] === 'rejected') {
+                $rejectedCategoryData[] = Arr::first($data, function ($item) use ($key) {
+                    return $item['partkey'] == $key;
+                });
+            } else {
+                $successCategoryData[$key] = $responseArr;
+            }
+        }
+
+        return [
+            'success' => $successCategoryData,
+            'rejected' => $rejectedCategoryData,
+        ];
+    }
+
+    protected function fetchProxyIfNeed(){
+        if ($this->attempts ===  10 || $this->attempts ===  20 && $this->attempts ===  30 && $this->attempts ===  40) {
+            $this->grabber->setProxies();
+            $this->grabber->getProxies();
+        }
     }
 }

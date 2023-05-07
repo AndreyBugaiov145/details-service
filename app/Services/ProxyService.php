@@ -67,7 +67,6 @@ class ProxyService
     {
         Log::debug('fetchProxy');
         try {
-            Log::debug('fetchProxy ProxyScrape');
             $endpoint = new ProxyScrape($this->opt1);
             $proxies1 = $endpoint->get() ?: [];
         } catch (\Exception $e) {
@@ -77,8 +76,6 @@ class ProxyService
         }
 
         try {
-            Log::debug('fetchProxy ProxyOrg');
-
             $proxyOrg = new ProxyOrg() ;
             $proxies2 = $proxyOrg->getProxies();
         } catch (\Exception $e) {

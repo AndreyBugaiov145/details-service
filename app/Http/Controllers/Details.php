@@ -56,6 +56,15 @@ class Details extends Controller
             $detail = Detail::find($id);
             $detail->update($data);
 
+            Detail::where([['title', $request->get('title')], ['s_number', $request->get('s_number')]])
+                ->update([
+                    'stock' => $request->get('stock'),
+                    'price' => $request->get('price'),
+                    'us_shipping_price' => $request->get('us_shipping_price'),
+                    'ua_shipping_price' => $request->get('ua_shipping_price'),
+                    'price_markup' => $request->get('price_markup'),
+                ]);
+
         } catch (\Exception $e) {
             return ApiResponseServices::fail('Something was wrong , try again later');
         }
@@ -79,6 +88,6 @@ class Details extends Controller
             return $details[0];
         });
 
-        return ApiResponseServices::successCustomData(array_values( $detailsData->toArray()));
+        return ApiResponseServices::successCustomData(array_values($detailsData->toArray()));
     }
 }

@@ -1,7 +1,13 @@
 <template>
     <div class="container categories-block pt-3">
         <div class="cat-bg-block">
+            <SearchComponent
+                :authUser="authUser"
+                :startSearch="startSearch"
+                :endSearch="endSearch"
+            />
             <CategoryComponent
+                v-if="!is_search"
                 v-for="category in categories" :key="category.id"
                 :category="category"
                 :authUser="authUser"
@@ -13,12 +19,15 @@
 <script>
 
 import axios from 'axios'
+import SearchComponent from "../../components/SearchComponent";
 
 export default {
+    components: {SearchComponent},
     data() {
         return {
             categories: [],
-            authUser: false
+            authUser: false,
+            is_search: false,
         }
     },
     methods: {
@@ -39,6 +48,13 @@ export default {
                 alert('Something went wrong try again later.')
             }
         },
+
+        startSearch() {
+            this.is_search = true
+        },
+        endSearch() {
+            this.is_search = false
+        }
 
     },
     async mounted() {

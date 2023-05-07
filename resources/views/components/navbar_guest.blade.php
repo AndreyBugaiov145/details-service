@@ -1,9 +1,6 @@
-<nav class="navbar navbar-expand-lg navbar-light  p-3 mb-0 container">
-    <div class="w-100">
-        <center><h1 class="shop-logo">Detail List</h1></center>
-        <center>
-            <div><h2> Всі запчастини для вашого авто</h2></div>
-        </center>
+<nav class="navbar navbar-expand-lg navbar-light  p-3 mb-0 container nav-client" >
+    <div class="w-100" style="background-image: {{asset('images/logo.png')}}">
+        <div style="height: 200px;"></div>
         <div class="d-flex flex-row-reverse">
             <div class="d-flex flex-column">
                 <div><span class="phone">

@@ -7,6 +7,7 @@ use App\Models\Currency;
 use App\Models\Detail;
 use App\Models\DetailAnalogue;
 use App\Services\ApiResponseServices;
+use Illuminate\Http\Request;
 
 class Details extends Controller
 {
@@ -55,6 +56,15 @@ class Details extends Controller
             $detail = Detail::find($id);
             $detail->update($data);
 
+            Detail::where([['title', $request->get('title')], ['s_number', $request->get('s_number')]])
+                ->update([
+                    'stock' => $request->get('stock'),
+                    'price' => $request->get('price'),
+                    'us_shipping_price' => $request->get('us_shipping_price'),
+                    'ua_shipping_price' => $request->get('ua_shipping_price'),
+                    'price_markup' => $request->get('price_markup'),
+                ]);
+
         } catch (\Exception $e) {
             return ApiResponseServices::fail('Something was wrong , try again later');
         }
@@ -67,5 +77,17 @@ class Details extends Controller
         Detail::where('id', $id)->delete();
 
         return ApiResponseServices::successCustomData();
+    }
+
+    public function search(Request $request)
+    {
+        $details = Detail::where('s_number', 'like', $request->get('search') . '%')
+            ->orWhere('interchange_numbers', 'like', '%' . $request->get('search') . '%')->get();
+
+        $detailsData = $details->groupBy('s_number')->map(function ($details) {
+            return $details[0];
+        });
+
+        return ApiResponseServices::successCustomData(array_values($detailsData->toArray()));
     }
 }

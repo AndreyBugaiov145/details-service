@@ -32,7 +32,16 @@ nav{
     h1{
         font-family: 'Satisfy', cursive;
     }
-    background-color: rgb(157, 178, 161,0.9);
+
+}
+.nav-client{
+    //background-color: red;
+    //background-image:url("{{ asset('images/logo.png')}}");
+    background-image:url('/images/logo2.png');
+    background-size: 30%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-color: #000;
 }
 
 .ml-3{
@@ -64,16 +73,35 @@ nav{
 
 .phone{
     font-family: sans-serif;
-    color: #302971 ;
+    color: #ffffff;
 }
 .icon{
     width:16px;
     height: 16px;
     font-size: 16px;
-    color: #302971 ;
+    color: #f1eeee;
 }
 
 .loader{
     width:16px !important;
     height: 16px !important;
+}
+
+div .uneditable-input-bg:focus {
+    border-color: rgb(93, 5, 5);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgb(93, 5, 5);
+    outline: 0 none;
+}
+
+.search-text{
+    font-weight: 400;
+    font-size: 20px;
+}
+
+div button.search-btn{
+    margin-left: -3px !important;
+}
+
+.catalog-icon{
+    fill: #ff2929;
 }

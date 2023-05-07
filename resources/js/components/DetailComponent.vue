@@ -2,6 +2,7 @@
     <tr>
         <td><span v-html="detail.title"></span></td>
         <td><a href="" @click.prevent="showAnalogyDetail" title="Деталі аналоги">{{ detail.s_number }}</a></td>
+        <td>{{ detail.interchange_numbers }}</td>
         <td class="detail-desc">{{ detail.short_description }}</td>
         <td v-if="detail.isDisabled">Тимчасово недоступно</td>
         <td v-else-if="detail.stock == 0">Під замовлення,час доставки 14 – 25 днів</td>

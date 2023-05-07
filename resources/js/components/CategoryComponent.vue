@@ -10,8 +10,8 @@
             <div  v-if="isLoading" class="spinner-border loader"  role="status">
                 <span class="sr-only loader"></span>
             </div>
-            <b-icon v-else-if="!showChildCategory || !showChildCategoryDetails" icon="folder-plus" scale="0.7" variant="primary" aria-hidden="true"></b-icon>
-            <b-icon v-else icon="file-earmark-minus" scale="0.7" variant="primary" aria-hidden="true"></b-icon>
+            <b-icon v-else-if="!showChildCategory || !showChildCategoryDetails" icon="folder-plus" class="catalog-icon" scale="0.7" variant="primary" aria-hidden="true"></b-icon>
+            <b-icon v-else icon="file-earmark-minus" class="catalog-icon" scale="0.7" variant="primary" aria-hidden="true"></b-icon>
             <span  v-html="category.title"></span>
         </h5>
         <div class="ml-3" v-if="categories.length && showChildCategory">
@@ -26,6 +26,7 @@
                 <thead>
                 <tr>
                     <th scope="col">Назва</th>
+                    <th scope="col"></th>
                     <th scope="col">OEM / Interchange Numbers</th>
                     <th scope="col">Опис</th>
                     <th scope="col">ціна</th>
@@ -143,7 +144,6 @@ export default {
                     this.details = response.data.data
                     this.showChildCategory = true
                     this.showChildCategoryDetails = true
-                    console.log(this.details)
                 } else {
                     alert('Something went wrong try again later.')
                 }

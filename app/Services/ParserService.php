@@ -18,8 +18,8 @@ class ParserService
         $jnsData = [];
         foreach ($divs as $div) {
             $jsn = (array)json_decode(html_entity_decode($div->firstChild()->getAttribute('value')));
-            $a = optional( $div->find('a.navlabellink'))[0];
-            if(is_null($a)){
+            $a = optional($div->find('a.navlabellink'))[0];
+            if (is_null($a)) {
                 continue;
             }
             if ($a) {
@@ -55,6 +55,11 @@ class ParserService
             $short_description_div = $tbody->find('div.listing-text-row')[0];
             $short_description_a_elems = $short_description_div->firstChild()->find('span');
             $short_description = '';
+            $a_info_link = $tbody->find('a.ra-btn-moreinfo');
+            $info_link = null;
+            if ($a_info_link && $a_info_link[0]) {
+                $info_link = $a_info_link[0]->getAttribute('href');
+            }
             foreach ($short_description_a_elems as $span) {
                 $short_description .= $span->text();
             }
@@ -76,7 +81,7 @@ class ParserService
 
                 }
             }
-            $detailsData[] = compact('title', 'short_description', 's_number', 'price', 'partkey');
+            $detailsData[] = compact('title', 'short_description', 's_number', 'price', 'partkey', 'info_link');
         }
 
         return $detailsData;
@@ -113,5 +118,16 @@ class ParserService
             }
         }
         return $data;
+    }
+
+    public function getEOMNumbersDetails()
+    {
+        $numbers = '';
+        $section = $this->dom->find('td section[aria-label^=Alternate/OEM Part Number(s)]');
+        if ($section && $section[0]) {
+            $numbers = trim(str_replace('OEM / Interchange Numbers:', '', $section[0]->text()));
+        }
+
+        return $numbers;
     }
 }

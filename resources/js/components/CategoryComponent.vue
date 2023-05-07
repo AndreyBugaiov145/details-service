@@ -26,6 +26,7 @@
                 <thead>
                 <tr>
                     <th scope="col">Назва</th>
+                    <th scope="col"></th>
                     <th scope="col">OEM / Interchange Numbers</th>
                     <th scope="col">Опис</th>
                     <th scope="col">ціна</th>
@@ -143,7 +144,6 @@ export default {
                     this.details = response.data.data
                     this.showChildCategory = true
                     this.showChildCategoryDetails = true
-                    console.log(this.details)
                 } else {
                     alert('Something went wrong try again later.')
                 }

@@ -9,7 +9,7 @@ $container-max-widths: (
     xl: 1140px
 );
 
-*{
+* {
     font-family: 'Playfair Display', serif;
     font-family: 'Rubik', sans-serif;
     color: #000
@@ -20,7 +20,7 @@ $container-max-widths: (
 }
 
 body {
-   //background-image:url('{{ asset('assets/images/b2b/graph-01.svg')}}');
+    //background-image:url('{{ asset('assets/images/b2b/graph-01.svg')}}');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
@@ -28,62 +28,80 @@ body {
     height: 100%;
 }
 
-nav{
-    h1{
+nav {
+    h1 {
         font-family: 'Satisfy', cursive;
     }
 
 }
-.nav-client{
-    //background-color: red;
-    //background-image:url("{{ asset('images/logo.png')}}");
-    background-image:url('../images/logo2.png');
+
+.nav-client {
+    background-image: url('../images/logo2.png');
     background-size: 30%;
     background-repeat: no-repeat;
     background-position: center center;
     background-color: #000;
 }
 
-.ml-3{
-    margin-left:20px
+.nav-height {
+    height: 200px
+}
+
+@media (max-width: 600px) {
+    .nav-client {
+        background-image: url('../images/logo2.png');
+        background-size: 50%;
+        background-repeat: no-repeat;
+        background-position: top 20px center;
+        background-color: #000;
+    }
+    .nav-height {
+        height: 100px
+    }
 }
 
 
-.categories-block{
+.ml-3 {
+    margin-left: 20px
+}
+
+
+.categories-block {
     background-color: #fff;
     height: 100%;
     min-height: 100vh;
 }
 
-.category-block-border{
+.category-block-border {
     border-bottom: 1px dashed black;
 }
 
-.shop-logo{
-    color:  #fff;
+.shop-logo {
+    color: #fff;
     font-size: 70px;
     font-weight: 900;
     text-shadow: #9d500c 2px 0 10px;
 }
 
-.detail-desc{
+.detail-desc {
     font-size: 14px;
 }
 
 
-.phone{
+.phone {
     font-family: sans-serif;
     color: #ffffff;
 }
-.icon{
-    width:16px;
+
+.icon {
+    width: 16px;
     height: 16px;
     font-size: 16px;
     color: #f1eeee;
 }
 
-.loader{
-    width:16px !important;
+.loader {
+    width: 16px !important;
     height: 16px !important;
 }
 
@@ -93,15 +111,15 @@ div .uneditable-input-bg:focus {
     outline: 0 none;
 }
 
-.search-text{
+.search-text {
     font-weight: 400;
     font-size: 20px;
 }
 
-div button.search-btn{
-    margin-left: -3px !important;
+div button.search-btn {
+    margin-left: -6px !important;
 }
 
-.catalog-icon{
+.catalog-icon {
     fill: #ff2929;
 }

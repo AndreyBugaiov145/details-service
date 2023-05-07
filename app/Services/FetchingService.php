@@ -48,7 +48,8 @@ class FetchingService
         return $this->httpClient;
     }
 
-    public function setProxies($proxies = []){
+    public function setProxies($proxies = [])
+    {
         $this->proxies = $proxies;
     }
 
@@ -57,7 +58,7 @@ class FetchingService
         $i = 0;
         $count = $count / 10 > 20 ? $count / 10 : 20;
         while (count($this->proxies) < $count) {
-            $this->setProxies (array_unique(array_merge($this->proxies, $this->proxyService->getProxies())));
+            $this->setProxies(array_unique(array_merge($this->proxies, $this->proxyService->getProxies())));
             \Log::info('need count' . $count . '.Get new proxies' . count($this->proxies));
             $i++;
             if ($i > 3) {
@@ -295,8 +296,10 @@ class FetchingService
             foreach ($chunk as $item) {
                 $uid = $item['partkey'];
                 $key = $uid . '|' . $proxies[$j];
-                $promises[$key] = $this->getAsyncRequestDetailEOM($item, $proxies[$j]);
-                $j++;
+                if (!empty($item['info_link'])) {
+                    $promises[$key] = $this->getAsyncRequestDetailEOM($item, $proxies[$j]);
+                    $j++;
+                }
             }
 
             $responses = Promise\settle($promises)->wait();

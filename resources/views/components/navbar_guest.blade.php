@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light  p-3 mb-0 container nav-client" >
-    <div class="w-100" style="background-image: {{asset('images/logo.png')}}">
+    <div class="w-100" >
         <div style="height: 200px;"></div>
         <div class="d-flex flex-row-reverse">
             <div class="d-flex flex-column">

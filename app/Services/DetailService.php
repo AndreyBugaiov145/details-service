@@ -69,7 +69,7 @@ class DetailService
 
             $detailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
             Log::info($this->parsingSetting->brand . '-Details count' . count($detailsDataArr));
-            $this->saveDetails($detailsDataArr);
+            $this->saveDetails($detailsDataArr, false, true);
             unset($detailsDataArr);
             gc_collect_cycles();
 
@@ -81,6 +81,7 @@ class DetailService
                 }
                 return 0;
             }, $this->detailsData);
+            //Deprecated
 //            $detailsDataArrFromDB = $this->getDetailsNoFetchAnalogy($categoryIds);
 //            if (count($detailsDataArrFromDB)) {
 //                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
@@ -137,7 +138,7 @@ class DetailService
             //save details
             $allDetailsDataArr = $this->array2Dto1DAndAddUid($this->detailsData, false);
             Log::info($this->parsingSetting->brand . '-Details count' . count($allDetailsDataArr));
-            $this->saveDetails($allDetailsDataArr);
+            $this->saveDetails($allDetailsDataArr, false, true);
 
             $categoryIds = array_map(function ($details) {
                 if (isset($details[0])) {
@@ -145,6 +146,8 @@ class DetailService
                 }
                 return 0;
             }, $this->detailsData);
+
+            //Deprecated
 //            $detailsDataArr = $this->getDetailsNoFetchAnalogy($categoryIds);
 //            Log::info($this->parsingSetting->brand . '-Details count need fetch Analogy Details' . count($detailsDataArr));
 //            if (count($detailsDataArr)) {
@@ -854,7 +857,7 @@ class DetailService
         gc_collect_cycles();
         $data = [];
         foreach ($dataDetails->toArray() as $groupKey => $group) {
-            if  (!empty($group[0]['info_link'])){
+            if (!empty($group[0]['info_link'])) {
                 $group['partkey'] = $groupKey;
                 $group['info_link'] = $group[0]['info_link'];
                 $data[$groupKey] = $group;
@@ -953,7 +956,7 @@ class DetailService
     {
         foreach ($result as $key => $responseArr) {
             $html = (string)$responseArr['value']->getBody();
-            if(!$html) {
+            if (!$html) {
                 continue;
             }
 
@@ -963,7 +966,7 @@ class DetailService
             unset($item['partkey']);
             unset($item['info_link']);
 
-            try{
+            try {
 
                 $parser = new ParserService($html);
                 $EOMNumbers = $parser->getEOMNumbersDetails();
@@ -975,9 +978,9 @@ class DetailService
                     ]);
 
                 }
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 Log::critical('getEOMDetailsData Error');
-                Log::critical($e->getMessage(),$e->getCode());
+                Log::critical($e->getMessage(), $e->getCode());
             }
 //            $parser = new ParserService($html);
 //            $EOMNumbers = $parser->getEOMNumbersDetails();
@@ -1045,8 +1048,9 @@ class DetailService
         ];
     }
 
-    protected function fetchProxyIfNeed(){
-        if ($this->attempts ===  10 || $this->attempts ===  20 && $this->attempts ===  30 && $this->attempts ===  40) {
+    protected function fetchProxyIfNeed()
+    {
+        if ($this->attempts === 10 || $this->attempts === 20 && $this->attempts === 30 && $this->attempts === 40) {
             $this->grabber->setProxies();
             $this->grabber->getProxies();
         }

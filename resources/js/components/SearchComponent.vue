@@ -4,7 +4,10 @@
             <span class="mr-3 search-text">Part Number</span>
             <div class="form-outline d-flex justify-content-center align-items-center">
                 <input v-model="search" type="search" id="search" placeholder="Пошук" class="form-control uneditable-input-bg"/>
-                <button type="button" class="btn btn-dark search-btn" @click="searchDetails">
+                <div  v-if="isLoading" class="spinner-border loader"  role="status">
+                    <span class="sr-only loader"></span>
+                </div>
+                <button v-else type="button" class="btn btn-dark search-btn" @click="searchDetails">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="red" class="bi bi-search" viewBox="0 0 14 14">
                         <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                     </svg>
@@ -62,7 +65,8 @@ export default {
             is_searched: false,
             search: '',
             searchFailLength: false,
-            details: []
+            details: [],
+            isLoading : false
         }
     },
     methods: {
@@ -72,14 +76,22 @@ export default {
                 return
             }
             this.searchFailLength = false
-            let response = await axios.get(`/api/detail/search?search=${this.search}`)
-            if (response.status) {
-                this.details = response.data.data
-                this.is_searched = true
-                this.startSearch()
-            } else {
-                alert('Something went wrong try again later.')
+            this.isLoading = true
+            try {
+                let response = await axios.get(`/api/detail/search?search=${this.search}`)
+                if (response.status) {
+                    this.details = response.data.data
+                    this.is_searched = true
+                    this.startSearch()
+                } else {
+                    alert('Something went wrong try again later.')
+                }
+            }catch (e){
+
+            }finally {
+                this.isLoading = false
             }
+
         },
         async updateDetails() {
             let response = await axios.get(`/api/detail/category-details/${this.category.id}`)

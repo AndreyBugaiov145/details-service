@@ -64,6 +64,15 @@ class ParserService
                 $short_description .= $span->text();
             }
 
+            // Get EOM numbers
+            $eom_numbers = $tbody->find('span[title^=Replaces these Alternate/ OE Part Numbers]');
+            $is_fetched_i_n = false;
+            $interchange_numbers = null;
+            if ($eom_numbers && $eom_numbers[0]) {
+                $is_fetched_i_n= true;
+                $interchange_numbers= $eom_numbers[0]->text();
+            }
+
             $result = [];
             preg_match("~[^\d]*(\d*\.?\d*)[^\d]*~", $tbody->find('span.listing-price')[0]->firstChild()->text(), $result);
             if (isset($result[1])) {
@@ -81,7 +90,7 @@ class ParserService
 
                 }
             }
-            $detailsData[] = compact('title', 'short_description', 's_number', 'price', 'partkey', 'info_link');
+            $detailsData[] = compact('title', 'short_description', 's_number', 'price', 'partkey', 'info_link','is_fetched_i_n' ,'interchange_numbers');
         }
 
         return $detailsData;

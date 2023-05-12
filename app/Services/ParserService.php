@@ -70,7 +70,7 @@ class ParserService
             $interchange_numbers = null;
             if ($eom_numbers && $eom_numbers[0]) {
                 $is_fetched_i_n= true;
-                $interchange_numbers= $eom_numbers[0]->text();
+                $interchange_numbers=  \Str::limit($eom_numbers[0]->text(),220);
             }
 
             $result = [];

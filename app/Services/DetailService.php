@@ -81,13 +81,13 @@ class DetailService
                 }
                 return 0;
             }, $this->detailsData);
-            $detailsDataArrFromDB = $this->getDetailsNoFetchAnalogy($categoryIds);
-            if (count($detailsDataArrFromDB)) {
-                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
-                Log::info($this->parsingSetting->brand . '-start saving Analogy details.', $this->detailsData[0]);
-                MemoryUtils::monitoringMemory();
-                $this->saveDetails($this->detailsData, true);
-            }
+//            $detailsDataArrFromDB = $this->getDetailsNoFetchAnalogy($categoryIds);
+//            if (count($detailsDataArrFromDB)) {
+//                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
+//                Log::info($this->parsingSetting->brand . '-start saving Analogy details.', $this->detailsData[0]);
+//                MemoryUtils::monitoringMemory();
+//                $this->saveDetails($this->detailsData, true);
+//            }
 
             $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
             if (count($detailsDataArrFromDB)) {
@@ -145,13 +145,13 @@ class DetailService
                 }
                 return 0;
             }, $this->detailsData);
-            $detailsDataArr = $this->getDetailsNoFetchAnalogy($categoryIds);
-            Log::info($this->parsingSetting->brand . '-Details count need fetch Analogy Details' . count($detailsDataArr));
-            if (count($detailsDataArr)) {
-                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
-                Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
-                $this->saveDetails($this->detailsData, true);
-            }
+//            $detailsDataArr = $this->getDetailsNoFetchAnalogy($categoryIds);
+//            Log::info($this->parsingSetting->brand . '-Details count need fetch Analogy Details' . count($detailsDataArr));
+//            if (count($detailsDataArr)) {
+//                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+//                Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
+//                $this->saveDetails($this->detailsData, true);
+//            }
 
             $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
             if (count($detailsDataArrFromDB)) {
@@ -699,7 +699,7 @@ class DetailService
             'info_link',
             'is_fetched_i_n',
         ])->withoutAppends()->whereIn('category_id', $categoryIds)
-            ->where([['is_fetched_i_n', false], ['is_manual_added', false]])->get()->toArray();
+            ->where([['is_fetched_i_n', false], ['is_manual_added', false]])->whereNotNull('info_link')->get()->toArray();
 
         MemoryUtils::monitoringMemory();
         gc_collect_cycles();
@@ -854,10 +854,12 @@ class DetailService
         gc_collect_cycles();
         $data = [];
         foreach ($dataDetails->toArray() as $groupKey => $group) {
-            $group['partkey'] = $groupKey;
-            $group['info_link'] = $group[0]['info_link'];
-            $data[$groupKey] = $group;
+            if  (!empty($group[0]['info_link'])){
+                $group['partkey'] = $groupKey;
+                $group['info_link'] = $group[0]['info_link'];
+                $data[$groupKey] = $group;
 
+            }
         }
         MemoryUtils::monitoringMemory();
         $dataDetails = null;
@@ -951,6 +953,9 @@ class DetailService
     {
         foreach ($result as $key => $responseArr) {
             $html = (string)$responseArr['value']->getBody();
+            if(!$html) {
+                continue;
+            }
 
             $item = Arr::first($data, function ($item) use ($key) {
                 return $item['partkey'] == $key;
@@ -958,16 +963,32 @@ class DetailService
             unset($item['partkey']);
             unset($item['info_link']);
 
-            $parser = new ParserService($html);
-            $EOMNumbers = $parser->getEOMNumbersDetails();
+            try{
 
-            foreach ($item as $detail) {
-                $this->detailsData[] = array_merge($detail, [
-                    'interchange_numbers' => $EOMNumbers,
-                    'is_fetched_i_n' => true
-                ]);
+                $parser = new ParserService($html);
+                $EOMNumbers = $parser->getEOMNumbersDetails();
 
+                foreach ($item as $detail) {
+                    $this->detailsData[] = array_merge($detail, [
+                        'interchange_numbers' => $EOMNumbers,
+                        'is_fetched_i_n' => true
+                    ]);
+
+                }
+            }catch (\Exception $e){
+                Log::critical('getEOMDetailsData Error');
+                Log::critical($e->getMessage(),$e->getCode());
             }
+//            $parser = new ParserService($html);
+//            $EOMNumbers = $parser->getEOMNumbersDetails();
+//
+//            foreach ($item as $detail) {
+//                $this->detailsData[] = array_merge($detail, [
+//                    'interchange_numbers' => $EOMNumbers,
+//                    'is_fetched_i_n' => true
+//                ]);
+//
+//            }
             MemoryUtils::monitoringMemory();
             unset($item);
             unset($html);

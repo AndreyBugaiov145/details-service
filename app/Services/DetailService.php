@@ -81,21 +81,21 @@ class DetailService
                 }
                 return 0;
             }, $this->detailsData);
-//            $detailsDataArrFromDB = $this->getDetailsNoFetchAnalogy($categoryIds);
-//            if (count($detailsDataArrFromDB)) {
-//                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
-//                Log::info($this->parsingSetting->brand . '-start saving Analogy details.', $this->detailsData[0]);
-//                MemoryUtils::monitoringMemory();
-//                $this->saveDetails($this->detailsData, true);
-//            }
-
-            $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
+            $detailsDataArrFromDB = $this->getDetailsNoFetchAnalogy($categoryIds);
             if (count($detailsDataArrFromDB)) {
-                $this->fetchAndMergeToDetailEOMNumbers($detailsDataArrFromDB);
-                Log::info($this->parsingSetting->brand . '-start saving EOMNumbers details.', $this->detailsData[0]);
+                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArrFromDB);
+                Log::info($this->parsingSetting->brand . '-start saving Analogy details.', $this->detailsData[0]);
                 MemoryUtils::monitoringMemory();
-                $this->saveDetails($this->detailsData, false, true);
+                $this->saveDetails($this->detailsData, true);
             }
+
+//            $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
+//            if (count($detailsDataArrFromDB)) {
+//                $this->fetchAndMergeToDetailEOMNumbers($detailsDataArrFromDB);
+//                Log::info($this->parsingSetting->brand . '-start saving EOMNumbers details.', $this->detailsData[0]);
+//                MemoryUtils::monitoringMemory();
+//                $this->saveDetails($this->detailsData, false, true);
+//            }
         } catch (\Exception $e) {
             $this->parsingSetting->category_parsing_status = ParsingSetting::STATUS_FAIL;
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;
@@ -145,21 +145,21 @@ class DetailService
                 }
                 return 0;
             }, $this->detailsData);
-//            $detailsDataArr = $this->getDetailsNoFetchAnalogy($categoryIds);
-//            Log::info($this->parsingSetting->brand . '-Details count need fetch Analogy Details' . count($detailsDataArr));
-//            if (count($detailsDataArr)) {
-//                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
-//                Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
-//                $this->saveDetails($this->detailsData, true);
-//            }
-
-            $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
-            if (count($detailsDataArrFromDB)) {
-                $this->fetchAndMergeToDetailEOMNumbers($detailsDataArrFromDB);
-                Log::info($this->parsingSetting->brand . '-start saving EOMNumbers details.', $this->detailsData[0]);
-                MemoryUtils::monitoringMemory();
-                $this->saveDetails($this->detailsData, false, true);
+            $detailsDataArr = $this->getDetailsNoFetchAnalogy($categoryIds);
+            Log::info($this->parsingSetting->brand . '-Details count need fetch Analogy Details' . count($detailsDataArr));
+            if (count($detailsDataArr)) {
+                $this->fetchAndMergeToDetailAnalogyDetails($detailsDataArr);
+                Log::info($this->parsingSetting->brand . '-start saving details.', $this->detailsData[0]);
+                $this->saveDetails($this->detailsData, true);
             }
+//
+//            $detailsDataArrFromDB = $this->getDetailsNoFetchEOM($categoryIds);
+//            if (count($detailsDataArrFromDB)) {
+//                $this->fetchAndMergeToDetailEOMNumbers($detailsDataArrFromDB);
+//                Log::info($this->parsingSetting->brand . '-start saving EOMNumbers details.', $this->detailsData[0]);
+//                MemoryUtils::monitoringMemory();
+//                $this->saveDetails($this->detailsData, false, true);
+//            }
 
         } catch (\Exception $e) {
             $this->parsingSetting->detail_parsing_status = ParsingSetting::STATUS_FAIL;

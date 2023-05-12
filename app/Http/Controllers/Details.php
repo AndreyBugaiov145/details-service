@@ -81,9 +81,9 @@ class Details extends Controller
 
     public function search(Request $request)
     {
-        $details = Detail::where('s_number', 'like', $request->get('search') . '%')
-            ->orWhere('interchange_numbers', 'like', '%' . $request->get('search') . '%')->get();
-
+//        \DB::statement('SET SESSION sql_mode = ""');
+        $details = \DB::table('details')->where('s_number', 'like', $request->get('search') . '%')->get();
+//
         $detailsData = $details->groupBy('s_number')->map(function ($details) {
             return $details[0];
         });

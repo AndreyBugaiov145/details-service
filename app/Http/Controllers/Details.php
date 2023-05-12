@@ -84,10 +84,10 @@ class Details extends Controller
 //        \DB::statement('SET SESSION sql_mode = ""');
         $details = \DB::table('details')->where('s_number', 'like', $request->get('search') . '%')->get();
 //
-//        $detailsData = $details->groupBy('s_number')->map(function ($details) {
-//            return $details[0];
-//        });
+        $detailsData = $details->groupBy('s_number')->map(function ($details) {
+            return $details[0];
+        });
 
-        return ApiResponseServices::successCustomData(array_values($details->toArray()));
+        return ApiResponseServices::successCustomData(array_values($detailsData->toArray()));
     }
 }

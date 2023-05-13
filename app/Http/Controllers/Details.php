@@ -96,6 +96,6 @@ class Details extends Controller
             return $details[0];
         })*/;
 
-        return ApiResponseServices::successCustomData($details->toArray());
+        return ApiResponseServices::successCustomData(array_values( $detailsData->toArray()));
     }
 }

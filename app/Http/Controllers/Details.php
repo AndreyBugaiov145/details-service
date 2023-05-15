@@ -92,10 +92,21 @@ class Details extends Controller
                 }
             }
             return $detail;
-        })/*->groupBy('interchange_numbers')->map(function ($details) {
+        });/*->groupBy('interchange_numbers')->map(function ($details) {
             return $details[0];
-        })*/;
+        })*/
 
-        return ApiResponseServices::successCustomData(array_values( $detailsData->toArray()));
+        $sortedDetails = collect();
+
+        foreach ($detailsData as $detail) {
+            if ($detail->s_number == $request->get('search') || $detail->interchange_numbers == $request->get('search')) {
+                $sortedDetails->prepend($detail);
+            } else {
+                $sortedDetails->push($detail);
+            }
+        }
+
+
+        return ApiResponseServices::successCustomData(array_values($sortedDetails->toArray()));
     }
 }

@@ -85,17 +85,8 @@ class Details extends Controller
             ->orWhere('interchange_numbers', 'like', $request->get('search') . '%')->get();
 
         $detailsData = $details->groupBy('s_number')->map(function ($details) {
-            $detail = $details[0];
-            if (is_string($detail->analogy_details)) {
-                if (json_decode($detail->analogy_details) && json_last_error() === JSON_ERROR_NONE) {
-                    $detail->analogy_details = json_decode($detail->analogy_details);
-                }
-            }
-            return $detail;
-        });/*->groupBy('interchange_numbers')->map(function ($details) {
             return $details[0];
-        })*/
-
+        });
         $sortedDetails = collect();
 
         foreach ($detailsData as $detail) {
@@ -106,7 +97,6 @@ class Details extends Controller
             }
         }
 
-
-        return ApiResponseServices::successCustomData(array_values($sortedDetails->toArray()));
+        return ApiResponseServices::successCustomData(Detail::hydrate($sortedDetails->toArray())->toArray());
     }
 }

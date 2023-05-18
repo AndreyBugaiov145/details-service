@@ -10,9 +10,9 @@
     <meta name="keywords" content="Деталі, Деталі для авто, Авто Деталі, Запчастини ,Деталі BUICK,Деталі CHEVROLET,Деталі CHRYSLER,Деталі DODGE,Деталі FORD
     ,Деталі JEEP,Деталі MAZDA,Деталі AUDI,Деталі CADILLAC">
 
-    <meta property="og:title" content="Деталі для вашого авто" />
-    <meta property="og:description" content="Зручний каталог запчастин для вашого авто" />
-    <meta property="og:image" content="{{asset('images/logo.svg')}}" />
+    <meta property="og:title" content="Деталі для вашого авто"/>
+    <meta property="og:description" content="Зручний каталог запчастин для вашого авто"/>
+    <meta property="og:image" content="{{url(asset('images/logo.svg'))}}"/>
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -21,8 +21,8 @@
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
-<body >
-    @yield('navbar')
+<body>
+@yield('navbar')
 <div>
     @yield('content')
 </div>

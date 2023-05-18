@@ -84,9 +84,12 @@ class Details extends Controller
         $details = \DB::table('details')->where('s_number', 'like', $request->get('search') . '%')
             ->orWhere('interchange_numbers', 'like', $request->get('search') . '%')->get();
 
-        $detailsData = $details->groupBy('s_number')->map(function ($details) {
+        $detailsData = $details->groupBy(function ($item) {
+            return $item->title . '-' . $item->s_number;
+        })->map(function ($details) {
             return $details[0];
         });
+
         $sortedDetails = collect();
 
         foreach ($detailsData as $detail) {

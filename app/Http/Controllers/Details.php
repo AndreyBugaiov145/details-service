@@ -87,7 +87,7 @@ class Details extends Controller
             ->orWhere('interchange_numbers', 'like', $request->get('search') . '%')->get();
 
         $detailsData = $details->groupBy(function ($item) {
-            return $item->title . '-' . $item->s_number;
+            return trim($item->title) . '-' . trim($item->s_number);
         })->map(function ($details) {
             return $details[0];
         });

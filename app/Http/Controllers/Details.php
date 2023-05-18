@@ -58,6 +58,8 @@ class Details extends Controller
 
             Detail::where([['title', $request->get('title')], ['s_number', $request->get('s_number')]])
                 ->update([
+                    'title' => $request->get('title'),
+                    'short_description' => $request->get('short_description'),
                     'stock' => $request->get('stock'),
                     'price' => $request->get('price'),
                     'us_shipping_price' => $request->get('us_shipping_price'),

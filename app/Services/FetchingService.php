@@ -15,7 +15,7 @@ class FetchingService
     protected $connect_timeout = 15;
     protected $proxies = [];
     protected $proxyService;
-    protected $chunkCount = 500;
+    protected $chunkCount = 380;
 
     public function __construct()
     {
